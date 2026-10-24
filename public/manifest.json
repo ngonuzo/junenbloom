@@ -1,0 +1,17 @@
+{
+  "name": "June & Bloom Founders Studio",
+  "short_name": "June & Bloom",
+  "description": "Private founders dashboard for June & Bloom Lifestyle Company",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#FDFBF7",
+  "theme_color": "#122620",
+  "icons": [
+    {
+      "src": "/brand/jb-monogram.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
