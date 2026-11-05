@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Holiday Styling Inquiry",
-  description: "Tell us about your home and preferred dates. We reply personally within one business day.",
+  description: "Tell us about your home and preferred dates. We reply personally within 1-2 business days.",
 };
 
 export default function InquirePage() {
@@ -29,8 +29,8 @@ export default function InquirePage() {
             </Link>
             <HeroTitle className="t-h1 mt-6" text="A few questions, about three minutes." delay={80} />
             <p className="anim-fade-up mt-6 t-body text-ink" style={{ "--d": "520ms" } as React.CSSProperties}>
-              Your answers go straight to the two of us. {SITE.replyPromise} Nothing is booked or
-              charged until you accept a quote.
+              Your answers come straight to us. {SITE.replyPromise} Nothing is booked or charged
+              until you accept a quote.
             </p>
           </div>
         </aside>

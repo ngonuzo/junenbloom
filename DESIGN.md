@@ -45,9 +45,10 @@ All colours must come from design tokens (`src/styles/tokens.css`). Raw hex valu
 ### Font Stacks (`DR-16`)
 Self-hosted through the Next.js font loader with zero third-party network requests and zero layout shift:
 - **Default Pairing**:
-  - **Headings**: `Bodoni Moda` (high-contrast luxury serif)
+  - **Headings**: `Newsreader` (screen-first editorial serif with an optical-size axis; sturdy at small sizes)
   - **Body**: `Hanken Grotesk` (clean, warm humanist sans)
 - **Alternates (on `/dev/type` for founder approval)**:
+  - **Previous default**: `Bodoni Moda` (headings) + `Hanken Grotesk` (body). High contrast, thin hairlines at small sizes.
   - **Alternate 1**: `Libre Caslon Display` (headings) + `Albert Sans` (body)
   - **Alternate 2**: `Instrument Serif` (headings) + `Figtree` (body)
 

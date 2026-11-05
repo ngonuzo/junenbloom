@@ -7,7 +7,7 @@ import { SITE, whatsappHref } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Write to June & Bloom about gifts, boards, holiday styling or delivery. We reply within one business day.",
+  description: "Write to June & Bloom about gifts, boards, holiday styling or delivery. We reply within 1-2 business days.",
 };
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
@@ -25,9 +25,9 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       <div className="grid gap-14 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5">
           <p className="anim-fade-up t-kicker text-gold-text">Contact</p>
-          <HeroTitle className="t-h1 mt-6" text="Write to us. A person will answer." italicWords={["person"]} />
+          <HeroTitle className="t-h1 mt-6" text="Write to us. A human will answer." italicWords={["human"]} />
           <p className="anim-fade-up mt-6 max-w-md t-lede text-ink" style={{ "--d": "480ms" } as React.CSSProperties}>
-            Rush orders, deliveries outside our area, gifts for a team, or a question about your tree.{" "}
+            Rush orders, deliveries outside our service area, gifts for a team, or a question about your tree.{" "}
             {SITE.replyPromise}
           </p>
 

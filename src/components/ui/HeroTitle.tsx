@@ -12,6 +12,7 @@ export function HeroTitle({
   step = 55,
   italicWords = [],
   id,
+  children,
 }: {
   text: string;
   as?: "h1" | "h2" | "p";
@@ -21,6 +22,8 @@ export function HeroTitle({
   /** Words (exact match, punctuation included) set in the italic cut for emphasis. */
   italicWords?: string[];
   id?: string;
+  /** Rendered after the words, inside the same heading (for example a rotating phrase). */
+  children?: React.ReactNode;
 }) {
   const words = text.split(" ");
   return (
@@ -38,6 +41,7 @@ export function HeroTitle({
           {i < words.length - 1 ? " " : null}
         </React.Fragment>
       ))}
+      {children}
     </Tag>
   );
 }

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Service Area",
   description:
-    "Delivery zones, fees and days across the Greater Toronto Area, with a postal code checker. Pickup is always free.",
+    "Delivery zones, fees and days across the Greater Toronto Area, with a postal code checker. Pickup is always available.",
 };
 
 export default function ServiceAreaPage() {
@@ -24,8 +24,7 @@ export default function ServiceAreaPage() {
       <PageIntro
         kicker="Service area"
         title="Delivering across the Greater Toronto Area."
-        italicWords={["Area."]}
-        lede="Three zones, each with its own fee, minimum and delivery days. Enter your postal code to see yours. Pickup is always free."
+        lede="Three zones, each with its own fee, minimum order amount, and delivery days. Enter your postal code to see yours. Pickup is always available."
       />
 
       <section className="container-page pb-24 sm:pb-28">
@@ -72,11 +71,12 @@ export default function ServiceAreaPage() {
               <span className="t-numeral text-[1.5rem] text-gold">&amp;</span>
               <h3 className="mt-4 font-heading text-[1.375rem] font-medium text-ivory">Pickup</h3>
               <p className="mt-3 t-small text-ivory-soft">
-                Always free, with no minimum. The address and instructions come with your confirmation.
+                Always available, with no order minimum. The address and instructions come with your
+                payment confirmation.
               </p>
               <dl className="mt-auto pt-8 text-[0.8125rem]">
                 <dt className="text-ivory-muted">Hours</dt>
-                <dd className="mt-1 font-heading text-[1.125rem] text-ivory">{store.settings.pickupHours}</dd>
+                <dd className="mt-1 whitespace-pre-line font-heading text-[1.125rem] text-ivory">{store.settings.pickupHours}</dd>
               </dl>
             </StaggerItem>
           </Stagger>
@@ -86,13 +86,13 @@ export default function ServiceAreaPage() {
       <section className="section-y">
         <div className="container-page grid gap-8 lg:grid-cols-12 lg:items-end">
           <Reveal className="lg:col-span-6">
-            <p className="t-kicker text-gold-text">Not in your area?</p>
+            <p className="t-kicker text-gold-text">Peculiar situation?</p>
             <h2 className="t-h2 mt-5">We will tell you honestly what we can do.</h2>
           </Reveal>
           <Reveal className="lg:col-span-5 lg:col-start-8" delay={0.1}>
             <p className="t-body text-ink">
-              For Hamilton, Niagara, cottage country or a gift to several addresses, send us a note with
-              the postal code and date. If we can arrange it, we will quote it.
+              For gifts outside our service area or to several addresses, send us a note with the
+              postal code(s) and date(s). If we can arrange it, we will quote it.
             </p>
             <div className="mt-6">
               <TextLink href="/contact?topic=delivery">Message us about delivery</TextLink>

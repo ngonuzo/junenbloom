@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import {
+  Newsreader,
   Bodoni_Moda,
   Hanken_Grotesk,
   Libre_Caslon_Display,
@@ -10,14 +11,26 @@ import {
 import "@/styles/tokens.css";
 import { SITE } from "@/content/site";
 
-// Default pairing (DR-16). Bodoni Moda ships its optical-size axis so display
-// sizes get the fine hairlines and text sizes stay sturdy.
+// Default pairing (DR-16). Newsreader is drawn for on-screen reading: sturdy,
+// open letterforms at card and body-adjacent sizes, with an optical-size axis
+// that keeps display sizes refined. Hanken Grotesk carries the body copy.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  variable: "--font-newsreader",
+  display: "swap",
+});
+
+// Former default, kept as an alternate for the /dev/type review only.
+// Its hairlines get thin at small sizes, so it is not preloaded on public pages.
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
   style: ["normal", "italic"],
   axes: ["opsz"],
   variable: "--font-bodoni",
   display: "swap",
+  preload: false,
 });
 
 const hanken = Hanken_Grotesk({
@@ -89,9 +102,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-CA"
-      className={`${bodoni.variable} ${hanken.variable} ${caslon.variable} ${albert.variable} ${instrument.variable} ${figtree.variable}`}
+      className={`${newsreader.variable} ${bodoni.variable} ${hanken.variable} ${caslon.variable} ${albert.variable} ${instrument.variable} ${figtree.variable}`}
     >
-      <body className="relative min-h-dvh">
+      {/* suppressHydrationWarning: browser extensions such as Grammarly add attributes
+          to <body> before React loads; this ignores those, and only on this one element. */}
+      <body className="relative min-h-dvh" suppressHydrationWarning>
         {/* Paper-grain undertone (DR-12) is painted on the page background in tokens.css,
             beneath the text rather than over it. */}
         {children}

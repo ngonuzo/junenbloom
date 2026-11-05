@@ -138,7 +138,7 @@ export default async function OrderStatusPage({
               {pickup ? (
                 <>
                   <p>{store.settings.pickupAddress}</p>
-                  <p className="mt-1 text-muted">Hours: {store.settings.pickupHours}</p>
+                  <p className="mt-1 whitespace-pre-line text-muted">Hours: {store.settings.pickupHours}</p>
                 </>
               ) : (
                 <>

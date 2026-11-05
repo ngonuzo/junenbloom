@@ -90,7 +90,7 @@ export default function OurStoryPage() {
               </p>
               <p className="t-body text-ink">
                 We are based in the Greater Toronto Area and deliver across it. If you would like to meet
-                us, pickup is always free.
+                us, pickup is always available.
               </p>
             </Reveal>
           </div>

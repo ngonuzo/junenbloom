@@ -15,19 +15,35 @@ export const TOPICS = [
   { value: "styling", label: "Holiday styling" },
   { value: "delivery", label: "Delivery outside our area" },
   { value: "business", label: "Gifts for a business" },
+  { value: "other", label: "Other" },
 ];
+
+/** Field label with a required-field asterisk. */
+function RequiredLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <span aria-hidden className="ml-0.5 text-gold-text">
+        *
+      </span>
+    </>
+  );
+}
 
 /** Contact form (T4.15) with a honeypot; saved before anyone is notified. */
 export function ContactForm({ initialTopic }: { initialTopic?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [topic, setTopic] = useState(TOPICS.some((t) => t.value === initialTopic) ? initialTopic! : "general");
   const [message, setMessage] = useState("");
   const [company, setCompany] = useState("");
   const [tried, setTried] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
 
-  const valid = name.trim() && /\S+@\S+\.\S+/.test(email) && message.trim().length > 1;
+  // Phone is optional; if given, it needs at least 7 digits.
+  const phoneOk = phone.trim() === "" || phone.replace(/\D/g, "").length >= 7;
+  const valid = name.trim() && /\S+@\S+\.\S+/.test(email) && message.trim().length > 1 && phoneOk;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +60,13 @@ export function ContactForm({ initialTopic }: { initialTopic?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "contact_message",
-          payload: { name, email, topic: TOPICS.find((t) => t.value === topic)?.label ?? topic, message },
+          payload: {
+            name,
+            email,
+            phone: phone.trim() || undefined,
+            topic: TOPICS.find((t) => t.value === topic)?.label ?? topic,
+            message,
+          },
         }),
       });
       setState(res.ok ? "done" : "error");
@@ -88,7 +110,9 @@ export function ContactForm({ initialTopic }: { initialTopic?: string }) {
           <div className="grid gap-6 sm:grid-cols-2">
             <TextField
               id="contact-name"
-              label="Your name"
+              label={<RequiredLabel>Your name</RequiredLabel>}
+              required
+              aria-required="true"
               autoComplete="name"
               surface="ivory"
               value={name}
@@ -98,12 +122,30 @@ export function ContactForm({ initialTopic }: { initialTopic?: string }) {
             <TextField
               id="contact-email"
               type="email"
-              label="Email"
+              label={<RequiredLabel>Email</RequiredLabel>}
+              required
+              aria-required="true"
               autoComplete="email"
               surface="ivory"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={tried && !/\S+@\S+\.\S+/.test(email) ? "Please add a valid email." : undefined}
+            />
+            <TextField
+              id="contact-phone"
+              type="tel"
+              label={
+                <>
+                  Phone number
+                  <span className="ml-1.5 font-normal italic text-muted">(optional)</span>
+                </>
+              }
+              autoComplete="tel"
+              inputMode="tel"
+              surface="ivory"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              error={tried && !phoneOk ? "Please check the phone number." : undefined}
             />
           </div>
           <SelectField id="contact-topic" label="What is it about" surface="ivory" value={topic} onChange={(e) => setTopic(e.target.value)}>

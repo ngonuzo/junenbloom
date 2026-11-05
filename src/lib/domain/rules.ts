@@ -35,7 +35,7 @@ export function routeInquiry(input: InquiryRoutingInput): InquiryRoutingResult {
     return {
       customQuote: true,
       slotsRequired: 2,
-      reason: "Full-Service includes sourcing and styling across several rooms.",
+      reason: "Custom Service includes sourcing and styling across several rooms.",
     };
   }
 

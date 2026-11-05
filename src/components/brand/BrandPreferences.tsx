@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { AmpersandVariant } from "./ampersand-paths";
 
-export type FontPairingKey = "bodoni" | "caslon" | "instrument";
+export type FontPairingKey = "newsreader" | "bodoni" | "caslon" | "instrument";
 
 interface BrandPreferences {
   fontPairing: FontPairingKey;
@@ -12,7 +12,9 @@ interface BrandPreferences {
   setAmpersandVariant: (variant: AmpersandVariant) => void;
 }
 
-const STORAGE_KEY = "jb_design_review_v1";
+// v2: the default pairing changed to Newsreader, so earlier saved choices (which
+// recorded the old default) are not carried over.
+const STORAGE_KEY = "jb_design_review_v2";
 
 const BrandPreferencesContext = createContext<BrandPreferences | null>(null);
 
@@ -21,7 +23,7 @@ const BrandPreferencesContext = createContext<BrandPreferences | null>(null);
  * so a selection previews across the whole site for that browser.
  */
 export function BrandPreferencesProvider({ children }: { children: React.ReactNode }) {
-  const [fontPairing, setFontPairing] = useState<FontPairingKey>("bodoni");
+  const [fontPairing, setFontPairing] = useState<FontPairingKey>("newsreader");
   const [ampersandVariant, setAmpersandVariant] = useState<AmpersandVariant>("italic");
   const [loaded, setLoaded] = useState(false);
 
@@ -38,7 +40,7 @@ export function BrandPreferencesProvider({ children }: { children: React.ReactNo
 
   useEffect(() => {
     if (!loaded) return;
-    if (fontPairing === "bodoni") {
+    if (fontPairing === "newsreader") {
       document.documentElement.removeAttribute("data-font-pairing");
     } else {
       document.documentElement.setAttribute("data-font-pairing", fontPairing);
@@ -63,7 +65,7 @@ export function useBrandPreferences(): BrandPreferences {
   const ctx = useContext(BrandPreferencesContext);
   if (!ctx) {
     return {
-      fontPairing: "bodoni",
+      fontPairing: "newsreader",
       setFontPairing: () => {},
       ampersandVariant: "italic",
       setAmpersandVariant: () => {},

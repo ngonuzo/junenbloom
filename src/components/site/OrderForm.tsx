@@ -14,6 +14,7 @@ import { Button, ButtonLink, TextLink } from "@/components/ui/Button";
 import { Checkbox, ChoiceCard, TextArea, TextField } from "@/components/ui/Field";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { CheckIcon } from "@/components/ui/Icons";
+import { DateChoiceCalendar, localIso } from "@/components/ui/DateChoiceCalendar";
 import { EASE_LUXE } from "@/components/ui/Reveal";
 import { slotToneFor } from "@/lib/catalog";
 import { useCart, type CartItem } from "./CartContext";
@@ -80,6 +81,7 @@ export function OrderForm({
     () => generateUpcomingDates(21, leadTime, blockedDates).filter((d) => d.eligible).slice(0, 14),
     [leadTime, blockedDates]
   );
+  const availableDays = useMemo(() => new Set(dates.map((d) => d.iso)), [dates]);
 
   useEffect(() => {
     if (dietaryNote && !allergies) setAllergies(dietaryNote);
@@ -214,7 +216,7 @@ export function OrderForm({
               onChange={(v) => setFulfilment(v as "delivery" | "pickup")}
               options={[
                 { value: "delivery", label: "Delivery" },
-                { value: "pickup", label: "Pickup, free" },
+                { value: "pickup", label: "Pickup" },
               ]}
             />
             <AnimatePresence mode="wait" initial={false}>
@@ -319,7 +321,7 @@ export function OrderForm({
                   <p className="t-body text-ink">
                     Pickup is free. The address and instructions come with your confirmation.
                   </p>
-                  <p className="mt-2 t-small text-muted">Pickup hours: {pickupHours}.</p>
+                  <p className="mt-2 whitespace-pre-line t-small text-muted">Pickup hours: {pickupHours}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -348,37 +350,25 @@ export function OrderForm({
               )
             ) : (
               <>
-                <div
-                  role="radiogroup"
-                  aria-label="Day"
-                  data-missing={tried && !day}
-                  className="no-scrollbar scroll-fade -mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0"
-                >
-                  {dates.map((d) => {
-                    const on = d.iso === day;
-                    const date = new Date(`${d.iso}T12:00:00`);
-                    return (
-                      <button
-                        key={d.iso}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        aria-label={prettyDate(d.iso)}
-                        onClick={() => setDay(d.iso)}
-                        className={`flex w-[4.75rem] shrink-0 snap-start flex-col items-center rounded-card py-3.5 transition-colors duration-300 ease-luxe ${
-                          on ? "bg-emerald text-ivory" : "bg-cream text-emerald hover:bg-linen"
-                        }`}
-                      >
-                        <span className="text-[0.6875rem] uppercase tracking-[0.14em] opacity-80">
-                          {date.toLocaleDateString("en-CA", { weekday: "short" }).replace(".", "")}
-                        </span>
-                        <span className="mt-1 font-heading text-[1.625rem] leading-none">{date.getDate()}</span>
-                        <span className="mt-1 text-[0.6875rem] opacity-75">
-                          {date.toLocaleDateString("en-CA", { month: "short" }).replace(".", "")}
-                        </span>
-                      </button>
-                    );
-                  })}
+                <div data-missing={tried && !day}>
+                  <DateChoiceCalendar
+                    id="order-day"
+                    value={day ? [day] : []}
+                    onChange={(v) => setDay(v[0] ?? "")}
+                    max={1}
+                    minIso={dates[0]?.iso ?? localIso(new Date())}
+                    monthsAhead={1}
+                    closedWeekdays={[]}
+                    isAvailable={(iso) => availableDays.has(iso)}
+                    unavailableLabel="Unavailable (too soon or closed)"
+                    showChoices={false}
+                  />
+                  {day && (
+                    <p className="mt-3 text-[0.9375rem] text-ink">
+                      <span className="text-muted">Selected:</span>{" "}
+                      <span className="font-medium text-emerald">{prettyDate(day)}</span>
+                    </p>
+                  )}
                 </div>
                 <p className="mt-3 text-[0.8125rem] text-muted">
                   The earliest day reflects the notice your order needs. Sooner?{" "}
@@ -645,9 +635,9 @@ function CardPreview({ note }: { note: string }) {
         <div className="grain pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-multiply" />
         <Ampersand variant="italic" className="relative !h-6 text-gold-text" />
         <p className="relative font-heading text-[1.0625rem] italic leading-snug text-emerald [overflow-wrap:anywhere]">
-          {note || <span className="text-emerald/35">Your words, in our hand.</span>}
+          {note || <span className="text-emerald/35">Your words, in our handwriting.</span>}
         </p>
-        <p className="relative text-[0.625rem] uppercase tracking-[0.2em] text-gold-text">June &amp; Bloom</p>
+        <p className="relative text-center text-[0.625rem] uppercase tracking-[0.2em] text-gold-text">June &amp; Bloom</p>
       </div>
     </div>
   );

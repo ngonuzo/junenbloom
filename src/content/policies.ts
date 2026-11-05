@@ -1,3 +1,5 @@
+import { SITE } from "./site";
+
 /**
  * Policy wording (PRD section 12). Starter text for founder and legal review;
  * edit here, no component changes needed.
@@ -5,10 +7,10 @@
 export interface Policy {
   title: string;
   summary: string;
+  /** Optional second line under the summary. */
+  note?: string;
   sections: Array<{ heading: string; body: string[] }>;
 }
-
-export const POLICIES_UPDATED = "October 2026";
 
 export const POLICIES: Record<string, Policy> = {
   terms: {
@@ -25,7 +27,7 @@ export const POLICIES: Record<string, Policy> = {
       {
         heading: "Holiday styling",
         body: [
-          "Styling is booked by quote. Your date is held once you accept the quote and pay a 40 percent retainer. The balance is due 48 hours before installation.",
+          "Styling is booked by quote. Your date is held once you accept the quote and pay a 40% retainer. The balance is due 48 hours before installation.",
           "Decor we buy on your behalf is listed in your quote and paid for in advance, at cost.",
         ],
       },
@@ -51,7 +53,7 @@ export const POLICIES: Record<string, Policy> = {
       {
         heading: "Pickup",
         body: [
-          "Pickup is always free and has no minimum. The address and instructions are sent with your order confirmation.",
+          "Pickup is always available and has no minimum. The address and instructions are sent with your order confirmation.",
         ],
       },
       {
@@ -65,23 +67,25 @@ export const POLICIES: Record<string, Policy> = {
   refunds: {
     title: "Refunds and cancellations",
     summary: "Changing your mind, changing a date, and what happens with retainers.",
+    note: "Due to the custom nature of our products and services, all orders are final sale and non-refundable.",
     sections: [
       {
         heading: "Gift boxes",
         body: [
-          "You may cancel or change the date of a gift box up to 48 hours before the delivery or pickup date for a full refund.",
+          "You may change the date of a gift box up to 48 hours before the delivery or pickup date.",
         ],
       },
       {
         heading: "Charcuterie boards",
         body: [
-          "Boards are made fresh for you. Changes and cancellations need at least 48 hours' notice before your window.",
+          "Boards are made fresh per order. Changes to delivery dates need at least 48 hours' notice before your delivery window.",
         ],
       },
       {
         heading: "Holiday styling retainers",
         body: [
-          "The retainer holds a slot we turn others away for. It is not refundable within 14 days of installation, but we will gladly move you to another open date.",
+          "The retainer holds a slot we turn others away for; as such, payment is non-refundable within 14 days of installation. However, we will gladly move you to another open date.",
+          `Reach out to us by email at ${SITE.email} or call us at ${SITE.phone}, and we will do our best to accommodate your request.`,
         ],
       },
     ],
@@ -94,7 +98,7 @@ export const POLICIES: Record<string, Policy> = {
         heading: "Our kitchen",
         body: [
           "Our boards and food boxes are prepared in a kitchen that handles milk, wheat and gluten, tree nuts, peanuts, sesame, mustard and honey. We separate ingredients on request, but we cannot promise a board free of traces.",
-          "If you or a guest has a severe allergy, please message us before ordering.",
+          "If you or a guest has a severe allergy, please include this detail in your order.",
         ],
       },
       {

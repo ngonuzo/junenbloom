@@ -458,9 +458,10 @@ export const SEED_PRODUCTS: Product[] = [
     categoryName: "Holiday Styling",
     type: "styling",
     status: "live",
-    priceCents: 27500,
+    priceCents: 39500,
     priceIsFrom: true,
-    shortDescription: "We style the tree and decorations you already own into one considered look.",
+    shortDescription:
+      "We style the tree (6 ft) and decorations you already own into one considered look, with possible enhancements.",
     contents: [],
     allergens: [],
     leadTimeHours: 168,
@@ -473,14 +474,12 @@ export const SEED_PRODUCTS: Product[] = [
     motif: "tree",
     includes: [
       "A short call to agree palette and ribbon",
-      "Lights woven through and branches shaped, up to 9 ft",
-      "Your ornaments and topper placed with care",
-      "Tree skirt or collar dressed, room left tidy",
+      "Your ornaments, decor, and topper placed with care",
     ],
     excludes: [
-      "New ornaments, ribbon or lights",
-      "Trees over 9 ft, which are quoted separately",
-      "Takedown, available as an add-on",
+      "Tree, ornaments, ribbons or lights",
+      "Trees over 6 ft, which are quoted separately",
+      "Take down; this is available as an add-on",
     ],
     images: [
       {
@@ -496,15 +495,15 @@ export const SEED_PRODUCTS: Product[] = [
   {
     id: "style-decorating-sourcing",
     slug: "decorating-plus-sourcing",
-    name: "Decorating plus Sourcing",
+    name: "Decorating plus sourcing",
     subtitle: "Your favourites, with new pieces we find",
     categorySlug: "styling",
     categoryName: "Holiday Styling",
     type: "styling",
     status: "live",
-    priceCents: 42500,
+    priceCents: 59500,
     priceIsFrom: true,
-    shortDescription: "We plan a palette, source new ribbon, ornaments and stems, and style it all in.",
+    shortDescription: "We plan a palette, source new ribbons, ornaments and stems, and style it all beautifully.",
     contents: [],
     allergens: [],
     leadTimeHours: 168,
@@ -522,7 +521,7 @@ export const SEED_PRODUCTS: Product[] = [
       "Your heirloom pieces worked into the design",
     ],
     excludes: [
-      "The cost of new decor, itemised and prepaid",
+      "The cost of tree, lights, and new decor, itemised and prepaid",
       "Mantel or staircase garlands, available as add-ons",
     ],
     images: [
@@ -539,15 +538,16 @@ export const SEED_PRODUCTS: Product[] = [
   {
     id: "style-full-service",
     slug: "full-service-holiday",
-    name: "Full-Service",
+    name: "Custom Service",
     subtitle: "Tree, mantel, stairs and wrapping, all of it",
     categorySlug: "styling",
     categoryName: "Holiday Styling",
     type: "styling",
     status: "live",
-    priceCents: 85000,
+    priceCents: 99500,
     priceIsFrom: true,
-    shortDescription: "We plan and dress the whole home for the season, from the tree to the gifts beneath it.",
+    shortDescription:
+      "We plan and dress selected rooms/areas for the season, from the tree to the gifts beneath it.",
     contents: [],
     allergens: [],
     leadTimeHours: 168,
@@ -563,7 +563,7 @@ export const SEED_PRODUCTS: Product[] = [
       "Tree, lights and trim sourced, including trees over 9 ft",
       "Mantel, banister, table and entryway styling",
       "Gift wrapping to match the palette",
-      "First booking for January takedown and labelled storage",
+      "First booking for January take down and labelled storage",
     ],
     excludes: [
       "Exterior and roofline lighting",

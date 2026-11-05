@@ -54,11 +54,14 @@ export function Wordmark({
   surface = "ivory",
   size = "md",
   variant,
+  suffix,
   className = "",
 }: {
   surface?: "ivory" | "emerald";
   size?: keyof typeof SIZE;
   variant?: AmpersandVariant;
+  /** Extra word after the wordmark, e.g. "Lifestyle" in the header. */
+  suffix?: string;
   className?: string;
 }) {
   const word = surface === "emerald" ? "text-ivory" : "text-emerald";
@@ -76,6 +79,7 @@ export function Wordmark({
         style={{ transform: "translateY(0.07em)" }}
       />
       <span>Bloom</span>
+      {suffix && <span className="ml-[0.26em]">{suffix}</span>}
     </span>
   );
 }

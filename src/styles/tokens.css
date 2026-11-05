@@ -41,11 +41,16 @@
   /* Motion (DR-19) */
   --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Active type pairing (DR-16). Default: Bodoni Moda + Hanken Grotesk */
-  --type-heading: var(--font-bodoni), "Bodoni 72", Didot, Georgia, serif;
+  /* Active type pairing (DR-16). Default: Newsreader + Hanken Grotesk */
+  --type-heading: var(--font-newsreader), Georgia, "Times New Roman", serif;
   --type-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 
   --header-h: 64px;
+}
+
+[data-font-pairing="bodoni"] {
+  --type-heading: var(--font-bodoni), "Bodoni 72", Didot, Georgia, serif;
+  --type-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 }
 
 [data-font-pairing="caslon"] {
@@ -176,13 +181,24 @@
   }
 }
 
-@utility section-y {
-  padding-block: 4.5rem;
+/* Closer section rhythm for long pages with many short sections */
+@utility section-y-snug {
+  padding-block: 2.75rem;
   @media (width >= 40rem) {
-    padding-block: 5.5rem;
+    padding-block: 3.25rem;
   }
   @media (width >= 64rem) {
-    padding-block: 7rem;
+    padding-block: 3.75rem;
+  }
+}
+
+@utility section-y {
+  padding-block: 3.5rem;
+  @media (width >= 40rem) {
+    padding-block: 4.25rem;
+  }
+  @media (width >= 64rem) {
+    padding-block: 5rem;
   }
 }
 
@@ -286,26 +302,6 @@
       linear-gradient(color-mix(in oklab, currentColor 30%, transparent), color-mix(in oklab, currentColor 30%, transparent));
   }
 
-  /* Ivory to emerald graduation before the footer (DR-10), eased so the
-     change happens in the final screen rather than as a flat ramp */
-  .prefooter-gradient {
-    background: url("/textures/grain-soft.svg") 0 0 / 220px 220px, linear-gradient(
-      to bottom,
-      var(--ivory) 0%,
-      color-mix(in srgb, var(--ivory) 88%, var(--emerald)) 22%,
-      color-mix(in srgb, var(--ivory) 52%, var(--emerald)) 52%,
-      color-mix(in srgb, var(--ivory) 14%, var(--emerald)) 80%,
-      var(--emerald) 100%
-    );
-    background: url("/textures/grain-soft.svg") 0 0 / 220px 220px, linear-gradient(
-      to bottom in oklab,
-      var(--ivory) 0%,
-      color-mix(in oklab, var(--ivory) 88%, var(--emerald)) 22%,
-      color-mix(in oklab, var(--ivory) 52%, var(--emerald)) 52%,
-      color-mix(in oklab, var(--ivory) 14%, var(--emerald)) 80%,
-      var(--emerald) 100%
-    );
-  }
 
   /* Soft fade at the trailing edge of horizontal pickers, hinting there is more */
   .scroll-fade {
@@ -348,6 +344,10 @@
   50% { transform: translate3d(8%, 5%, 0) scale(1.08); }
   100% { transform: translate3d(-10%, -6%, 0) scale(1); }
 }
+@keyframes jb-caret {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
 @keyframes jb-halo {
   0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 70%, transparent); }
   100% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--gold) 0%, transparent); }
@@ -381,6 +381,9 @@
   .anim-halo {
     animation: jb-halo 2.2s var(--ease-luxury) infinite;
   }
+  .anim-caret {
+    animation: jb-caret 1s steps(1, end) infinite;
+  }
   .page-enter {
     animation: jb-fade 0.7s var(--ease-luxury) both;
   }
@@ -408,6 +411,9 @@
   }
   .anim-light, .anim-halo {
     animation: none !important;
+  }
+  .anim-caret {
+    display: none;
   }
 }
 
