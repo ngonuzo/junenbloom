@@ -56,9 +56,25 @@ export interface Product {
   motif: "vessel" | "linen" | "hearth" | "board" | "tree" | "botanical";
   includes?: string[];
   excludes?: string[];
+  /** Optional line shown under the short description (styling options). */
+  note?: string;
   images?: ProductImage[];
   options: ProductOption[];
 }
+
+/** A charcuterie delivery or pickup window offered every day (FR-50, FR-86). */
+export interface BoardWindow {
+  label: string;
+  capacity: number;
+}
+
+export const DEFAULT_BOARD_WINDOWS: BoardWindow[] = [
+  { label: "11:00 AM – 1:00 PM", capacity: 6 },
+  { label: "1:30 PM – 3:30 PM", capacity: 6 },
+  { label: "4:00 PM – 6:00 PM", capacity: 6 },
+];
+
+export const DEFAULT_BOARD_DAYS_AHEAD = 21;
 
 export interface BoardSlot {
   id: string;
@@ -175,6 +191,10 @@ export interface SiteSettings {
   seasonCap: number;
   notifyEmails: string[];
   blockedDates: string[];
+  /** Windows created for every upcoming day, with how many boards each can take. */
+  boardWindows: BoardWindow[];
+  /** How many days ahead board slots are kept open for booking. */
+  boardDaysAhead: number;
 }
 
 export interface StoreState {
@@ -199,6 +219,7 @@ export interface StoreState {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     topic: string;
     message: string;
     createdAt: string;
@@ -208,27 +229,64 @@ export interface StoreState {
 const DATA_DIR = path.join(process.cwd(), ".data");
 const STORE_PATH = path.join(DATA_DIR, "jb-store.json");
 
+/** Calendar date (YYYY-MM-DD) `offset` days from today, matching generateUpcomingDates. */
+export function dayIso(offset = 0, now: Date = new Date()): string {
+  const d = new Date(now);
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
+
+function windowKey(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+/**
+ * Keeps board slots rolling forward (FR-86): every day from today to the booking
+ * horizon has one slot per window in the template. Existing slots, bookings and
+ * per-day changes are never touched. Old unbooked slots are tidied away.
+ * Returns true when anything changed.
+ */
+export function ensureRollingSlots(state: StoreState, now: Date = new Date()): boolean {
+  const windows = state.settings.boardWindows?.length ? state.settings.boardWindows : DEFAULT_BOARD_WINDOWS;
+  const daysAhead = state.settings.boardDaysAhead || DEFAULT_BOARD_DAYS_AHEAD;
+  const have = new Set(state.slots.map((s) => `${s.day}|${s.window}`));
+  let changed = false;
+
+  for (let i = 0; i <= daysAhead; i++) {
+    const day = dayIso(i, now);
+    for (const w of windows) {
+      if (!have.has(`${day}|${w.label}`)) {
+        state.slots.push({
+          id: `slot-${day}-${windowKey(w.label)}`,
+          day,
+          window: w.label,
+          capacity: w.capacity,
+          booked: 0,
+          blocked: false,
+        });
+        have.add(`${day}|${w.label}`);
+        changed = true;
+      }
+    }
+  }
+
+  const cutoff = dayIso(-60, now);
+  const before = state.slots.length;
+  state.slots = state.slots.filter((s) => s.day >= cutoff || s.booked > 0);
+  if (state.slots.length !== before) changed = true;
+
+  if (changed) {
+    const order = new Map(windows.map((w, i) => [w.label, i]));
+    state.slots.sort((a, b) =>
+      a.day === b.day ? (order.get(a.window) ?? 99) - (order.get(b.window) ?? 99) : a.day < b.day ? -1 : 1
+    );
+  }
+  return changed;
+}
+
 function buildInitialSlots(): BoardSlot[] {
   const slots: BoardSlot[] = [];
-  const windows = ["11:00 AM – 1:00 PM", "1:30 PM – 3:30 PM", "4:00 PM – 6:00 PM"];
-  const now = new Date();
-  now.setHours(12, 0, 0, 0);
-
-  for (let i = 0; i < 14; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
-    const iso = d.toISOString().slice(0, 10);
-    windows.forEach((win, idx) => {
-      slots.push({
-        id: `slot-${iso}-${idx + 1}`,
-        day: iso,
-        window: win,
-        capacity: 6,
-        booked: i === 2 && idx === 1 ? 6 : i === 3 && idx === 0 ? 4 : 1,
-        blocked: false,
-      });
-    });
-  }
   return slots;
 }
 
@@ -243,15 +301,17 @@ export function createInitialStore(): StoreState {
       stylingOpen: true,
       takedownStorageOpen: true,
       taxMode: false,
-      bannerText: "Holiday styling dates for 2026 are open. Pickup is always free.",
+      bannerText: "Holiday styling dates for 2026 are open. Gift boxes and charcuterie board pickup available.",
       pickupAddress: "Pickup address to be confirmed by the founders",
-      pickupHours: "Tuesday to Sunday, 10 am to 5:30 pm",
+      pickupHours: "Monday to Saturday, 10 am to 5:30 pm\nSunday, 4 to 6 pm",
       boardLeadTimeHours: 48,
       giftLeadTimeHours: 72,
       weeklyInstallSlots: 4,
       seasonCap: 24,
       notifyEmails: ["sister1@juneandbloomlifestyle.com", "sister2@juneandbloomlifestyle.com"],
       blockedDates: [],
+      boardWindows: DEFAULT_BOARD_WINDOWS.map((w) => ({ ...w })),
+      boardDaysAhead: DEFAULT_BOARD_DAYS_AHEAD,
     },
     zones: DEFAULT_ZONES,
     prefixMap: DEFAULT_PREFIX_MAP,
@@ -348,7 +408,7 @@ export function createInitialStore(): StoreState {
         id: "inq-demo-1",
         publicId: "JB-2610-018",
         optionSlug: "decorating-plus-sourcing",
-        optionName: "Decorating plus Sourcing",
+        optionName: "Decorating plus sourcing",
         customerName: "Elena Rostova",
         customerEmail: "elena@rostovastudio.ca",
         customerPhone: "647-555-0130",
@@ -377,12 +437,16 @@ export function createInitialStore(): StoreState {
   };
 }
 
-const SEED_VERSION = 12;
+const SEED_VERSION = 14;
 
-const LEGACY_SEED_SETTINGS: Partial<Record<keyof SiteSettings, string>> = {
-  bannerText: "Autumn & Holiday Curations · Complimentary studio pickup or white-glove GTA delivery",
-  pickupAddress: "June & Bloom Studio · 142 Davenport Rd, Suite 204, Yorkville, Toronto, ON M5R 1J1",
-  pickupHours: "Tuesday to Sunday · 10:00 AM to 5:30 PM",
+/** Earlier seed values; a setting still holding one of these is refreshed to the current seed. */
+const LEGACY_SEED_SETTINGS: Partial<Record<keyof SiteSettings, string[]>> = {
+  bannerText: [
+    "Autumn & Holiday Curations · Complimentary studio pickup or white-glove GTA delivery",
+    "Holiday styling dates for 2026 are open. Pickup is always free.",
+  ],
+  pickupAddress: ["June & Bloom Studio · 142 Davenport Rd, Suite 204, Yorkville, Toronto, ON M5R 1J1"],
+  pickupHours: ["Tuesday to Sunday · 10:00 AM to 5:30 PM", "Tuesday to Sunday, 10 am to 5:30 pm"],
 };
 
 /**
@@ -396,7 +460,7 @@ function migrateStore(state: StoreState): StoreState {
   const settings = { ...state.settings };
   for (const [key, legacy] of Object.entries(LEGACY_SEED_SETTINGS)) {
     const k = key as keyof SiteSettings;
-    if (settings[k] === legacy) {
+    if (legacy.includes(settings[k] as string)) {
       (settings as Record<string, unknown>)[k] = fresh.settings[k];
     }
   }
@@ -430,16 +494,33 @@ function migrateStore(state: StoreState): StoreState {
   return migrated;
 }
 
+/** Fills settings added after a store was first written, and keeps slots rolling. */
+function prepareStore(state: StoreState): StoreState {
+  let changed = false;
+  if (!state.settings.boardWindows?.length) {
+    state.settings.boardWindows = DEFAULT_BOARD_WINDOWS.map((w) => ({ ...w }));
+    changed = true;
+  }
+  if (!state.settings.boardDaysAhead) {
+    state.settings.boardDaysAhead = DEFAULT_BOARD_DAYS_AHEAD;
+    changed = true;
+  }
+  if (ensureRollingSlots(state)) changed = true;
+  if (changed) writeStore(state);
+  return state;
+}
+
 export function readStore(): StoreState {
   try {
     if (fs.existsSync(STORE_PATH)) {
       const raw = fs.readFileSync(STORE_PATH, "utf8");
-      return migrateStore(JSON.parse(raw) as StoreState);
+      return prepareStore(migrateStore(JSON.parse(raw) as StoreState));
     }
   } catch {
     // Fallback to initial store
   }
   const initial = createInitialStore();
+  ensureRollingSlots(initial);
   writeStore(initial);
   return initial;
 }
@@ -531,9 +612,11 @@ export function createOrderInStore(input: {
   if (input.slotId) {
     const slot = store.slots.find((s) => s.id === input.slotId);
     if (slot) {
-      if (slot.booked >= slot.capacity) {
+      if (slot.blocked || slot.booked >= slot.capacity) {
         needsAttention = true;
-        attentionReason = `Slot ${slot.day} (${slot.window}) reached capacity simultaneously.`;
+        attentionReason = slot.blocked
+          ? `Slot ${slot.day} (${slot.window}) was closed before payment.`
+          : `Slot ${slot.day} (${slot.window}) reached capacity simultaneously.`;
       } else {
         slot.booked += 1;
       }

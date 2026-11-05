@@ -9,6 +9,7 @@ import { generateUpcomingDates } from "@/lib/domain/dates";
 import { formatCents } from "@/lib/domain/money";
 import { Button } from "@/components/ui/Button";
 import { ChoiceCard } from "@/components/ui/Field";
+import { DateChoiceCalendar, localIso } from "@/components/ui/DateChoiceCalendar";
 import { EASE_LUXE } from "@/components/ui/Reveal";
 import { ProductCard } from "./ProductCard";
 import { useCart } from "./CartContext";
@@ -36,11 +37,14 @@ export function CharcuterieReserve({
   slots,
   leadTimeHours,
   blockedDates,
+  daysAhead = 21,
 }: {
   boards: Product[];
   slots: BoardSlot[];
   leadTimeHours: number;
   blockedDates: string[];
+  /** How far ahead boards can be booked (set in the dashboard). */
+  daysAhead?: number;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -49,10 +53,20 @@ export function CharcuterieReserve({
   const reserveRef = useRef<HTMLDivElement>(null);
 
   const dates = useMemo(
-    () => generateUpcomingDates(16, leadTimeHours, blockedDates),
-    [leadTimeHours, blockedDates]
+    () => generateUpcomingDates(daysAhead + 1, leadTimeHours, blockedDates),
+    [daysAhead, leadTimeHours, blockedDates]
   );
-  const firstOpen = dates.find((d) => d.eligible && slots.some((s) => s.day === d.iso))?.iso ?? "";
+  // A day is open when it is outside the notice period and still has a window with room.
+  const openDays = useMemo(
+    () =>
+      new Set(
+        dates
+          .filter((d) => d.eligible && slots.some((s) => s.day === d.iso && !s.blocked && s.booked < s.capacity))
+          .map((d) => d.iso)
+      ),
+    [dates, slots]
+  );
+  const firstOpen = dates.find((d) => openDays.has(d.iso))?.iso ?? "";
 
   const [boardSlug, setBoardSlug] = useState(boards.find((b) => b.featured)?.slug ?? boards[0]?.slug ?? "");
   const [day, setDay] = useState(firstOpen);
@@ -150,50 +164,27 @@ export function CharcuterieReserve({
             </Step>
 
             <Step n={2} title="Day">
-              <div
-                role="radiogroup"
-                aria-label="Delivery or pickup day"
-                className="no-scrollbar scroll-fade -mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0"
-              >
-                {dates.map((d) => {
-                  const hasSlots = slots.some((s) => s.day === d.iso && !s.blocked && s.booked < s.capacity);
-                  const open = d.eligible && hasSlots;
-                  const on = d.iso === day;
-                  const date = new Date(`${d.iso}T12:00:00`);
-                  return (
-                    <button
-                      key={d.iso}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      aria-label={`${prettyDate(d.iso)}${open ? "" : ", unavailable"}`}
-                      disabled={!open}
-                      onClick={() => {
-                        setDay(d.iso);
-                        setSlotId("");
-                      }}
-                      className={`flex w-[4.75rem] shrink-0 snap-start flex-col items-center rounded-card py-3.5 transition-colors duration-300 ease-luxe ${
-                        on
-                          ? "bg-emerald text-ivory"
-                          : open
-                            ? "bg-ivory text-emerald hover:bg-mist"
-                            : "bg-transparent text-ink/30"
-                      }`}
-                    >
-                      <span className="text-[0.6875rem] uppercase tracking-[0.14em] opacity-80">
-                        {date.toLocaleDateString("en-CA", { weekday: "short" }).replace(".", "")}
-                      </span>
-                      <span className="mt-1 font-heading text-[1.625rem] leading-none">{date.getDate()}</span>
-                      <span className="mt-1 text-[0.6875rem] opacity-75">
-                        {date.toLocaleDateString("en-CA", { month: "short" }).replace(".", "")}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-3 text-[0.8125rem] text-muted">
-                Faded days are inside our notice period or fully booked.
-              </p>
+              <DateChoiceCalendar
+                id="board-day"
+                value={day ? [day] : []}
+                onChange={(v) => {
+                  setDay(v[0] ?? "");
+                  setSlotId("");
+                }}
+                max={1}
+                minIso={dates[0]?.iso ?? localIso(new Date())}
+                monthsAhead={Math.max(1, Math.ceil(daysAhead / 28))}
+                closedWeekdays={[]}
+                isAvailable={(iso) => openDays.has(iso)}
+                unavailableLabel="Unavailable (too soon or fully booked)"
+                showChoices={false}
+              />
+              {day && (
+                <p className="mt-3 text-[0.9375rem] text-ink">
+                  <span className="text-muted">Selected:</span>{" "}
+                  <span className="font-medium text-emerald">{prettyDate(day)}</span>
+                </p>
+              )}
             </Step>
 
             <Step n={3} title="Two-hour window">

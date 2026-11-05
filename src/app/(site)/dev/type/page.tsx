@@ -15,13 +15,22 @@ const PAIRINGS: Array<{
   note: string;
 }> = [
   {
-    key: "bodoni",
+    key: "newsreader",
     label: "Default",
+    heading: "Newsreader",
+    body: "Hanken Grotesk",
+    headingVar: "var(--font-newsreader)",
+    bodyVar: "var(--font-hanken)",
+    note: "Made for reading on screens. Sturdy, open letterforms with an editorial polish, so card titles and small headings stay clear. Paired with a calm, modern sans.",
+  },
+  {
+    key: "bodoni",
+    label: "Previous default",
     heading: "Bodoni Moda",
     body: "Hanken Grotesk",
     headingVar: "var(--font-bodoni)",
     bodyVar: "var(--font-hanken)",
-    note: "High-contrast and formal, with fine hairlines at display sizes. A calm, modern sans for reading.",
+    note: "High-contrast and formal, with fine hairlines at display sizes. Striking large, thinner at small sizes.",
   },
   {
     key: "caslon",
@@ -56,7 +65,7 @@ export default function DevTypePage() {
         so you can look around before deciding.
       </p>
 
-      <div className="mt-14 grid gap-6 lg:grid-cols-3">
+      <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {PAIRINGS.map((p) => {
           const on = fontPairing === p.key;
           return (

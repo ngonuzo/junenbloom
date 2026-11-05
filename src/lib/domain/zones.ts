@@ -24,7 +24,7 @@ export const DEFAULT_ZONES: DeliveryZone[] = [
     feeCents: 1500,
     minOrderCents: 10000,
     quoteOnly: false,
-    deliveryDays: "Tuesday to Sunday",
+    deliveryDays: "Monday to Saturday (limited Sunday window)",
   },
   {
     code: "EXTENDED",
@@ -33,7 +33,7 @@ export const DEFAULT_ZONES: DeliveryZone[] = [
     feeCents: 2500,
     minOrderCents: 12000,
     quoteOnly: false,
-    deliveryDays: "Wednesday to Sunday",
+    deliveryDays: "Monday to Saturday (limited Sunday window)",
   },
   {
     code: "OUTER",
@@ -42,7 +42,7 @@ export const DEFAULT_ZONES: DeliveryZone[] = [
     feeCents: 4500,
     minOrderCents: 15000,
     quoteOnly: false,
-    deliveryDays: "Thursday to Sunday",
+    deliveryDays: "Monday to Saturday (limited Sunday window)",
   },
 ];
 
@@ -171,7 +171,7 @@ export function zoneForPostalCode(
       zone: null,
       earliestWindowLabel: "By arrangement",
       message:
-        "This postal code is outside our delivery area. Pickup is always free, or message us and we will see what we can arrange.",
+        "This postal code is outside our delivery area. Pickup is always available, or message us and we will see what we can arrange.",
     };
   }
 

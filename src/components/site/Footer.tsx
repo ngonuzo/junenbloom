@@ -7,16 +7,13 @@ import { RevealWords, Reveal } from "@/components/ui/Reveal";
 import { ArrowIcon, CheckIcon } from "@/components/ui/Icons";
 import { POLICY_NAV, PRIMARY_NAV, SECONDARY_NAV, SITE, whatsappHref } from "@/content/site";
 
-/**
- * The page graduates from ivory to emerald only in the final screen before
- * the footer (DR-10), carrying the tagline (DR-01) into the footer itself.
- */
+/** Footer on solid emerald, opening with the tagline (DR-01). */
 export function Footer() {
   const whatsapp = whatsappHref();
   return (
     <footer className="no-print">
       <div
-        className="prefooter-gradient on-emerald relative flex min-h-[22rem] items-end justify-center overflow-hidden pb-16 pt-40 sm:min-h-[28rem] sm:pb-20"
+        className="paper on-emerald relative flex items-end justify-center overflow-hidden bg-emerald pb-12 pt-16 sm:pb-16 sm:pt-20"
       >
         <div className="container-page text-center">
           <Reveal y={10} duration={1.2}>
@@ -36,8 +33,7 @@ export function Footer() {
             <div className="space-y-6 lg:col-span-4">
               <Wordmark surface="emerald" size="lg" />
               <p className="max-w-sm t-small text-ivory-soft">
-                Signature gift boxes, styled charcuterie boards and holiday styling, made by two
-                sisters in the {SITE.region}.
+                {SITE.description}
               </p>
               <ul className="space-y-2 t-small">
                 <li>

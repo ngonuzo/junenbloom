@@ -76,7 +76,7 @@ export function ZoneChecker({
               transition={{ duration: 0.3 }}
               className="t-small text-muted"
             >
-              The first three characters are enough. Pickup is always free, wherever you are.
+              The first three characters are enough. Pickup available.
             </motion.p>
           ) : result.matched && result.zone ? (
             <motion.div

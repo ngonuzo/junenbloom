@@ -7,13 +7,14 @@ import { routeInquiry, type SpaceCategory, type TreeHeightBand } from "@/lib/dom
 import { Button, TextButton, TextLink } from "@/components/ui/Button";
 import { Checkbox, ChoiceCard, SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { CheckIcon } from "@/components/ui/Icons";
+import { DateChoiceCalendar, localIso } from "@/components/ui/DateChoiceCalendar";
 import { EASE_LUXE } from "@/components/ui/Reveal";
 import { SITE } from "@/content/site";
 
 const OPTIONS = [
-  { slug: "decorating-only", name: "Decorating Only", note: "From $275" },
-  { slug: "decorating-plus-sourcing", name: "Decorating plus Sourcing", note: "From $425" },
-  { slug: "full-service-holiday", name: "Full-Service", note: "Custom quote" },
+  { slug: "decorating-only", name: "Decorating Only", note: "From $395" },
+  { slug: "decorating-plus-sourcing", name: "Decorating plus sourcing", note: "From $595" },
+  { slug: "full-service-holiday", name: "Custom Service", note: "Custom quote, from $995" },
 ];
 
 const PALETTES = [
@@ -24,16 +25,16 @@ const PALETTES = [
   "Help me choose",
 ];
 
-const ADD_ONS = ["Gift wrapping", "Festive spaces", "Takedown and storage"];
+const ADD_ONS = ["Gift wrapping", "Festive spaces", "Take down and storage"];
 
-const BUDGETS = ["$275 to $500", "$500 to $1,000", "$1,000 to $2,000", "Over $2,000", "Not sure yet"];
+const BUDGETS = ["$300 to $600", "$600 to $1,000", "$1,000 to $2,000", "Over $2,000", "Not sure yet"];
 
 const STEPS = ["Your home", "Dates and style", "Your details"] as const;
 
 function isoInDays(days: number) {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 }
 
 /**
@@ -71,7 +72,7 @@ export function InquiryForm() {
   const [access, setAccess] = useState("");
   const [household, setHousehold] = useState("");
 
-  const [dates, setDates] = useState(["", "", ""]);
+  const [dates, setDates] = useState<string[]>([]);
   const [palette, setPalette] = useState("");
   const [addOns, setAddOns] = useState<string[]>([]);
   const [budget, setBudget] = useState("");
@@ -95,7 +96,7 @@ export function InquiryForm() {
 
   const stepValid = [
     Boolean(optionSlug && area.trim()),
-    Boolean(dates[0]),
+    dates.length > 0,
     Boolean(name.trim() && /\S+@\S+\.\S+/.test(email) && phone.trim() && consent),
   ];
 
@@ -148,7 +149,7 @@ export function InquiryForm() {
             spaceCategory: space,
             treeHeightBand: height,
             treeSupply: supply,
-            preferredDates: dates.filter(Boolean),
+            preferredDates: dates,
             palette: palette || "Not specified",
             addOns,
             budgetBand: budget || "Not sure yet",
@@ -184,7 +185,7 @@ export function InquiryForm() {
           <h2 ref={headingRef} tabIndex={-1} className="t-h2 mt-8 outline-none">
             Thank you, {name.split(" ")[0]}. We have your inquiry.
           </h2>
-          <p className="mt-5 max-w-xl t-lede text-ink">
+          <p className="mt-5 max-w-xl t-body text-ink">
             Your reference is <span className="font-medium text-emerald">{done.publicId}</span>. A
             copy is on its way to {email}. {SITE.replyPromise}
           </p>
@@ -195,7 +196,7 @@ export function InquiryForm() {
             </p>
           )}
           <ol className="mt-10 grid gap-6 sm:grid-cols-3">
-            {["We reply and set up a short call", "You receive a written quote", "A 40 percent retainer holds your date"].map(
+            {["We reply and set up a short call", "You receive a written quote", "A 40% retainer holds your date"].map(
               (t, i) => (
                 <li key={t} className="flex gap-4">
                   <span className="t-numeral text-[1.25rem] text-gold-text">{i + 1}</span>
@@ -249,7 +250,7 @@ export function InquiryForm() {
           >
             <h2 ref={headingRef} tabIndex={-1} className="t-h2 outline-none">
               {step === 0 && "Tell us about the room."}
-              {step === 1 && "When, and in what spirit."}
+              {step === 1 && "Tell us about your style and taste."}
               {step === 2 && "How we can reach you."}
             </h2>
 
@@ -288,7 +289,7 @@ export function InquiryForm() {
                     value={height}
                     onChange={(e) => setHeight(e.target.value as TreeHeightBand)}
                   >
-                    <option value="under_7ft">Up to 7 ft</option>
+                    <option value="under_7ft">Up to 6 ft</option>
                     <option value="7_to_9ft">7 to 9 ft</option>
                     <option value="over_9ft">Over 9 ft</option>
                   </SelectField>
@@ -313,10 +314,10 @@ export function InquiryForm() {
                       className="overflow-hidden"
                     >
                       <div className="rounded-card bg-mist px-5 py-4">
-                        <p className="text-[0.875rem] font-medium text-emerald">This one is a custom quote</p>
+                        <p className="text-[0.875rem] font-medium text-emerald">This is a custom quote</p>
                         <p className="mt-1 t-small text-ink">
-                          {routing.reason} We will price it personally after a short call, so there is no
-                          instant booking.
+                          {routing.reason} Hence, there is no instant booking: we price this service after a
+                          short call.
                         </p>
                       </div>
                     </motion.div>
@@ -369,21 +370,13 @@ export function InquiryForm() {
                   <legend className="mb-3 text-[0.875rem] font-medium text-emerald">
                     Preferred dates, up to three
                   </legend>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    {dates.map((d, i) => (
-                      <TextField
-                        key={i}
-                        id={`date-${i}`}
-                        type="date"
-                        label={i === 0 ? "First choice" : i === 1 ? "Second choice" : "Third choice"}
-                        optional={i > 0}
-                        min={minDate}
-                        value={d}
-                        onChange={(e) => setDates((prev) => prev.map((p, j) => (j === i ? e.target.value : p)))}
-                        error={i === 0 && tried && !d ? "Please choose at least one date." : undefined}
-                      />
-                    ))}
-                  </div>
+                  <DateChoiceCalendar
+                    value={dates}
+                    onChange={setDates}
+                    minIso={minDate}
+                    max={3}
+                    error={tried && dates.length === 0 ? "Please choose at least one date." : undefined}
+                  />
                 </fieldset>
 
                 <fieldset>
@@ -421,7 +414,7 @@ export function InquiryForm() {
                 </fieldset>
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                  <SelectField id="budget" label="Budget" optional value={budget} onChange={(e) => setBudget(e.target.value)}>
+                  <SelectField id="budget" label="Sourcing budget" optional value={budget} onChange={(e) => setBudget(e.target.value)}>
                     <option value="">Choose a range</option>
                     {BUDGETS.map((b) => (
                       <option key={b} value={b}>
@@ -466,6 +459,7 @@ export function InquiryForm() {
                   <TextField
                     id="name"
                     label="Your name"
+                    bordered
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -476,6 +470,7 @@ export function InquiryForm() {
                     id="phone"
                     type="tel"
                     label="Phone"
+                    bordered
                     autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -486,6 +481,7 @@ export function InquiryForm() {
                     id="email"
                     type="email"
                     label="Email"
+                    bordered
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -497,6 +493,7 @@ export function InquiryForm() {
                 <TextArea
                   id="notes"
                   label="Anything else"
+                  bordered
                   optional
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -504,7 +501,7 @@ export function InquiryForm() {
                 />
                 <div className="space-y-4">
                   <Checkbox id="consent" checked={consent} onChange={(e) => setConsent(e.target.checked)}>
-                    I agree to be contacted about this inquiry, and understand a 40 percent retainer is
+                    I agree to be contacted about this inquiry, and understand a 40% retainer is
                     needed to hold a date once I accept a quote. See our{" "}
                     <a href="/policies/privacy" className="link-quiet text-emerald">
                       privacy policy

@@ -108,6 +108,7 @@ export default function CharcuteriePage() {
             slots={store.slots}
             leadTimeHours={store.settings.boardLeadTimeHours}
             blockedDates={store.settings.blockedDates}
+            daysAhead={store.settings.boardDaysAhead}
           />
         </Suspense>
       ) : (

@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { readStore } from "@/lib/db/store";
-import { SITE } from "@/content/site";
 import { HeroTitle } from "@/components/ui/HeroTitle";
+import { Typewriter } from "@/components/ui/Typewriter";
 import { ImageSlot } from "@/components/ui/ImageSlot";
 import { ButtonLink, TextLink } from "@/components/ui/Button";
 import { Reveal, RevealMask, RevealWords, Stagger, StaggerItem } from "@/components/ui/Reveal";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 const OFFERINGS = [
   {
     title: "Gifting",
-    sentence: "Signature boxes of five or six well-chosen pieces, finished with a handwritten card.",
+    sentence: "Every signature box of well-chosen pieces is finished with a handwritten note.",
     href: "/gifting",
     cta: "Shop gifting",
     tone: "emerald" as const,
@@ -25,21 +25,30 @@ const OFFERINGS = [
   },
   {
     title: "Charcuterie",
-    sentence: "Boards built on the morning of your gathering and delivered inside a two-hour window.",
+    sentence: "Boards are built on the same day as delivery within your selected two-hour window.",
     href: "/charcuterie",
     cta: "Reserve a board",
     tone: "linen" as const,
     caption: "Three sizes, for 4 to 16",
   },
   {
-    title: "Holiday Styling",
-    sentence: "Your tree and rooms dressed for the season, with your ornaments or pieces we source.",
+    title: "Holiday styling",
+    sentence:
+      "Your tree and selected spaces are dressed for the season or occasion, with your own ornaments or decor, or the pieces we source.",
     href: "/holiday-styling",
     cta: "See styling options",
     tone: "moss" as const,
     caption: "Sample styling",
   },
 ];
+
+const HERO_ACTIONS = [
+  { href: "/gifting", label: "Shop gifts" },
+  { href: "/charcuterie", label: "Shop boards" },
+  { href: "/holiday-styling", label: "Book holiday styling" },
+];
+
+const HERO_PHRASES = ["assembled with intentionality.", "considered to the last ribbon."];
 
 const STEPS = [
   { title: "Choose", body: "Open any box or board and see exactly what is inside before you decide." },
@@ -69,40 +78,42 @@ export default function HomePage() {
   return (
     <>
       {/* Hero (PRD 6.1) */}
-      <section className="container-page pb-20 pt-8 sm:pt-12 lg:pb-28 lg:pt-14">
+      <section className="container-page pb-14 pt-8 sm:pt-12 lg:pb-16 lg:pt-14">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="lg:col-span-6 lg:pr-6">
-            <p
-              className="anim-fade-up font-heading text-[1.25rem] italic text-gold-text sm:text-[1.375rem]"
-              style={{ "--d": "60ms" } as React.CSSProperties}
-            >
-              {SITE.tagline}
-            </p>
-            <HeroTitle
-              className="t-display mt-5"
-              text="Gifts, boards and holiday homes, considered to the last ribbon."
-              italicWords={["ribbon."]}
-              delay={160}
-            />
+          <div className="lg:col-span-7 lg:pr-6 xl:col-span-6">
+            <HeroTitle className="t-display" text="Gifts, boards, and styling," delay={160}>
+              <span className="anim-fade-up block italic" style={{ "--d": "460ms" } as React.CSSProperties}>
+                <Typewriter phrases={HERO_PHRASES} />
+              </span>
+            </HeroTitle>
             <p
               className="anim-fade-up t-lede mt-7 max-w-[33rem] text-ink"
               style={{ "--d": "720ms" } as React.CSSProperties}
             >
-              We are two sisters in the {SITE.region}. Order a signature box or a styled board in a
-              few taps, or let us dress your home for the season.
+              Our philosophy is simple: <em>make lifestyle choices effortless</em>. Order a signature
+              box, an artisanal board, or let us style your space, all in a few clicks.
             </p>
             <div
-              className="anim-fade-up mt-10 flex flex-wrap items-center gap-x-9 gap-y-5"
+              className="anim-fade-up mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3"
               style={{ "--d": "860ms" } as React.CSSProperties}
             >
-              <ButtonLink href="/gifting" size="lg">
-                Shop Gifting
-              </ButtonLink>
-              <TextLink href="/holiday-styling">Book Holiday Styling</TextLink>
+              {/* Three equal buttons on one row from tablet width up; stacked on phones */}
+              {HERO_ACTIONS.map((action) => (
+                <ButtonLink
+                  key={action.href}
+                  href={action.href}
+                  size=""
+                  sentenceCase
+                  arrow={false}
+                  className="h-12 whitespace-nowrap px-3 text-[0.9375rem] sm:text-[0.8125rem] xl:text-[0.875rem]"
+                >
+                  {action.label}
+                </ButtonLink>
+              ))}
             </div>
           </div>
 
-          <div className="relative lg:col-span-6">
+          <div className="relative lg:col-span-5 xl:col-span-6">
             <Link
               href={heroProduct ? `/gifting/${heroProduct.slug}` : "/gifting"}
               className="group block"
@@ -165,23 +176,23 @@ export default function HomePage() {
           <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-6">
               <Reveal>
-                <p className="t-kicker text-gold-text">What we make</p>
+                <p className="t-kicker text-gold-text">What we do</p>
               </Reveal>
               <RevealWords
                 id="offerings-title"
                 className="t-h2 mt-5"
-                text="Three offerings, one standard of care."
+                text="One standard of care across three offerings"
               />
             </div>
             <Reveal className="lg:col-span-5 lg:col-start-8" delay={0.15}>
               <p className="t-lede text-ink-soft">
-                Everything is chosen, packed and delivered by the two of us. Nothing leaves our hands
-                until it is right.
+                Every item is selected, assembled, and delivered with intent and care. Nothing leaves
+                our doors undone.
               </p>
             </Reveal>
           </div>
 
-          <div className="mt-16 grid gap-14 md:grid-cols-3 md:gap-8 lg:mt-20 lg:gap-12">
+          <div className="mt-12 grid gap-14 md:grid-cols-3 md:gap-8 lg:mt-14 lg:gap-12">
             {OFFERINGS.map((offer, i) => (
               <Reveal key={offer.title} delay={i * 0.12}>
                 <Link href={offer.href} className="group block" aria-label={offer.title}>
@@ -192,7 +203,7 @@ export default function HomePage() {
                         caption={offer.caption}
                         tone={offer.tone}
                         composition={i + 1}
-                        tag={offer.title === "Holiday Styling" && !offeringPhotos[offer.href] ? "Sample styling" : undefined}
+                        tag={offer.title === "Holiday styling" && !offeringPhotos[offer.href] ? "Sample styling" : undefined}
                         parallax
                         photo={offeringPhotos[offer.href]}
                         // One frame shape for all three so the row reads as a set
@@ -231,7 +242,7 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <Stagger className="mt-14 grid gap-x-8 gap-y-16 md:grid-cols-3" stagger={0.12}>
+          <Stagger className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-3" stagger={0.12}>
             {featured.map((product, i) => (
               <StaggerItem key={product.id}>
                 <ProductCard product={product} index={i} />
@@ -239,7 +250,7 @@ export default function HomePage() {
             ))}
           </Stagger>
 
-          <Reveal className="mt-16" delay={0.1}>
+          <Reveal className="mt-12" delay={0.1}>
             <p className="t-small text-muted">
               Every box arrives with a card written by hand. Order at least three days ahead, or{" "}
               <Link href="/contact" className="link-quiet text-emerald">
@@ -251,7 +262,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Two sisters, one standard (PRD 6.1) */}
+      {/* Story block (PRD 6.1) */}
       <section className="section-y" aria-labelledby="story-title">
         <div className="container-page grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-6">
@@ -267,18 +278,14 @@ export default function HomePage() {
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
             <Reveal>
-              <p className="t-kicker text-gold-text">Two sisters, one standard</p>
+              <h2 id="story-title" className="t-kicker text-gold-text">
+                Three offerings, one standard, tastefully curated
+              </h2>
             </Reveal>
-            <RevealWords
-              id="story-title"
-              as="h2"
-              className="mt-6 font-heading text-[1.75rem] italic leading-[1.2] tracking-[-0.015em] text-emerald sm:text-[2.25rem]"
-              text="We would rather make fewer things, and make each one properly."
-            />
             <Reveal delay={0.15}>
-              <p className="mt-7 t-body text-ink">
-                One of us has spent ten years choosing gifts for clients and family. The other brings
-                the table and the tree. June &amp; Bloom is where those two habits meet.
+              <p className="mt-6 t-lede text-ink">
+                Ten years joyfully curating gifts for clients and family is now elevated to include
+                tasteful occasion styling.
               </p>
               <div className="mt-8">
                 <TextLink href="/our-story">Read our story</TextLink>
@@ -301,7 +308,7 @@ export default function HomePage() {
               text="Three steps, then it is in our hands."
             />
           </div>
-          <Stagger as="ol" className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10" stagger={0.14}>
+          <Stagger as="ol" className="mt-12 grid gap-12 md:grid-cols-3 md:gap-10" stagger={0.14}>
             {STEPS.map((step, i) => (
               <StaggerItem as="li" key={step.title}>
                 <span className="t-numeral block text-[3.5rem] leading-none text-gold">{i + 1}</span>
@@ -323,7 +330,7 @@ export default function HomePage() {
             <RevealWords id="area-title" className="t-h2 mt-5" text="Across the Greater Toronto Area." />
             <Reveal delay={0.12}>
               <p className="mt-6 t-body text-ink">
-                Three delivery zones, each with its own fee and days. Pickup is always free, and the
+                Three delivery zones, each with its own fee and days. Pickup is always available, and the
                 address comes with your confirmation.
               </p>
               <div className="mt-8">

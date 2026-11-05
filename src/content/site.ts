@@ -7,14 +7,16 @@ export const SITE = {
   shortName: "June & Bloom",
   tagline: "memories that inspire",
   description:
-    "Signature gift boxes, styled charcuterie boards and holiday styling by two sisters in the Greater Toronto Area.",
+    "Custom gift boxes, styled charcuterie boards, and holiday styling, done to your taste. Delivery and pick up within the Greater Toronto Area.",
   region: "Greater Toronto Area",
-  email: "concierge@juneandbloomlifestyle.com",
+  email: "info@juneandbloomlifestyle.com",
+  phone: "+1 647 449 1500",
+  phoneHref: "tel:+16474491500",
   instagramHandle: "juneandbloomlifestyle",
   instagramUrl: "https://www.instagram.com/juneandbloomlifestyle",
   /** PLACEHOLDER: international format without spaces, e.g. 14165550100. Hidden while empty. */
   whatsappNumber: "",
-  replyPromise: "We reply personally within one business day.",
+  replyPromise: "We reply personally within 1-2 business days.",
 } as const;
 
 export const PRIMARY_NAV = [

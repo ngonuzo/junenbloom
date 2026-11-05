@@ -16,6 +16,9 @@ const SURFACE = {
 
 export type FieldSurface = keyof typeof SURFACE;
 
+/** A visible outline for fields that need to stand out from their background. */
+const BORDERED = "border border-sage";
+
 export function FieldLabel({
   htmlFor,
   children,
@@ -46,6 +49,7 @@ export function TextField({
   surface = "cream",
   className = "",
   error,
+  bordered = false,
   ...rest
 }: {
   id: string;
@@ -55,6 +59,7 @@ export function TextField({
   surface?: FieldSurface;
   className?: string;
   error?: string;
+  bordered?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className={className}>
@@ -66,7 +71,7 @@ export function TextField({
         name={rest.name ?? id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`${CONTROL} ${SURFACE[surface]} h-12`}
+        className={`${CONTROL} ${SURFACE[surface]} ${bordered ? BORDERED : ""} h-12`}
         {...rest}
       />
       {error && (
@@ -85,6 +90,7 @@ export function TextArea({
   optional,
   surface = "cream",
   className = "",
+  bordered = false,
   ...rest
 }: {
   id: string;
@@ -93,6 +99,7 @@ export function TextArea({
   optional?: boolean;
   surface?: FieldSurface;
   className?: string;
+  bordered?: boolean;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <div className={className}>
@@ -102,7 +109,7 @@ export function TextArea({
       <textarea
         id={id}
         name={rest.name ?? id}
-        className={`${CONTROL} ${SURFACE[surface]} min-h-[7.5rem] resize-y py-3.5 leading-relaxed`}
+        className={`${CONTROL} ${SURFACE[surface]} ${bordered ? BORDERED : ""} min-h-[7.5rem] resize-y py-3.5 leading-relaxed`}
         {...rest}
       />
     </div>

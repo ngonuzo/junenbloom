@@ -6,8 +6,11 @@ import { ArrowIcon } from "./Icons";
  * One primary button style per view (DR-13): emerald fill, ivory text.
  * Secondary actions are quiet text links.
  */
-const PRIMARY =
-  "group/btn relative inline-flex items-center justify-center gap-3 rounded-card bg-emerald text-ivory font-medium uppercase tracking-[0.13em] transition-[background-color,transform,opacity] duration-300 ease-luxe hover:bg-pine active:scale-[0.985] disabled:pointer-events-none disabled:opacity-40";
+const BASE =
+  "group/btn relative inline-flex items-center justify-center gap-3 rounded-card bg-emerald text-ivory font-medium transition-[background-color,transform,opacity] duration-300 ease-luxe hover:bg-pine active:scale-[0.985] disabled:pointer-events-none disabled:opacity-40";
+const PRIMARY = `${BASE} uppercase tracking-[0.13em]`;
+/** Same button with the label as written (sentence case) instead of capitals. */
+const PRIMARY_SENTENCE = `${BASE} tracking-[0.01em]`;
 
 const SIZES = {
   sm: "h-10 px-5 text-[0.75rem]",
@@ -31,17 +34,21 @@ export function ButtonLink({
   children,
   size = "md",
   arrow = true,
+  sentenceCase = false,
   className = "",
   ...rest
 }: {
   href: string;
   children: React.ReactNode;
-  size?: Size;
+  /** Pass "" to size the button entirely through className. */
+  size?: Size | "";
   arrow?: boolean;
+  sentenceCase?: boolean;
   className?: string;
 } & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
+  const look = sentenceCase ? PRIMARY_SENTENCE : PRIMARY;
   return (
-    <Link href={href} className={`${PRIMARY} ${SIZES[size]} ${className}`} {...rest}>
+    <Link href={href} className={`${look} ${size ? SIZES[size] : ""} ${className}`} {...rest}>
       <span>{children}</span>
       {arrow && <Arrow />}
     </Link>

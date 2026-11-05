@@ -27,7 +27,7 @@ const PROCESS = [
   },
   {
     title: "Consult and quote",
-    body: "We reply within one business day, talk it through and send a written quote. A 40 percent retainer holds your date.",
+    body: "We reply within 1-2 business days, talk it through and send a written quote. A 40% retainer holds your date.",
   },
   {
     title: "Styled",
@@ -43,7 +43,7 @@ export default function HolidayStylingPage() {
   const addOns = [
     {
       title: "Gift wrapping",
-      body: "Papers, ribbon and fresh sprigs chosen to match the tree, so the gifts underneath belong to it.",
+      body: "Papers, ribbon and fresh sprigs chosen to match the tree, so the gifts underneath complement it.",
     },
     {
       title: "Festive spaces",
@@ -52,8 +52,8 @@ export default function HolidayStylingPage() {
     ...(takedownStorageOpen
       ? [
           {
-            title: "Takedown and storage",
-            body: "In early January we take it all down, wrap each ornament and label the boxes for next year.",
+            title: "Take down and storage",
+            body: "In early January, we take it all down, wrap each ornament and label your boxes for the next season.",
           },
         ]
       : []),
@@ -62,7 +62,7 @@ export default function HolidayStylingPage() {
   const faq = [
     {
       q: "How is a date confirmed?",
-      a: "After a short consultation we send a quote by private link. Accepting it and paying the 40 percent retainer holds your installation date. The balance is due 48 hours before we arrive.",
+      a: "After a short consultation we send a quote by private link. Accepting it and paying the 40% retainer holds your installation date. The balance is due 48 hours before we arrive.",
     },
     {
       q: "Do we need to buy anything?",
@@ -81,23 +81,23 @@ export default function HolidayStylingPage() {
   return (
     <>
       {/* Intro (PRD 6.4) */}
-      <section className="container-page pb-20 pt-10 sm:pt-14 lg:pb-28">
+      <section className="container-page pb-10 pt-10 sm:pt-14 lg:pb-14">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
             <p className="anim-fade-up t-kicker text-gold-text">Holiday Styling, 2026 season</p>
-            <HeroTitle className="t-h1 mt-6" text="Your home, dressed for the season by hand." italicWords={["hand."]} />
+            <HeroTitle className="t-h1 mt-6" text="Take care of hosting, we handle the decor." italicWords={["decor."]} />
             <p className="anim-fade-up t-lede mt-7 text-ink" style={{ "--d": "620ms" } as React.CSSProperties}>
-              We style trees, mantels and stairs across the GTA, with your own ornaments or pieces we
-              find for you. We take {seasonCap} homes a season.
+              We provide decor sourcing, styling, installation, and take down services across Toronto
+              and the GTA. We take {seasonCap} homes or businesses per season.
             </p>
             <div
               className="anim-fade-up mt-10 flex flex-wrap items-center gap-x-9 gap-y-5"
               style={{ "--d": "760ms" } as React.CSSProperties}
             >
-              <ButtonLink href="/holiday-styling/inquire" size="lg">
-                Start an inquiry
+              <ButtonLink href="#options" size="lg">
+                Select an option
               </ButtonLink>
-              <TextLink href="#options">See the three options</TextLink>
+              <TextLink href="/holiday-styling/inquire">Start an inquiry</TextLink>
             </div>
           </div>
           <div className="lg:col-span-7">
@@ -119,25 +119,29 @@ export default function HolidayStylingPage() {
       </section>
 
       {/* Three options (PRD 6.4) */}
-      <section id="options" className="paper scroll-mt-[var(--header-h)] bg-cream section-y" aria-labelledby="options-title">
+      <section id="options" className="paper scroll-mt-[var(--header-h)] bg-cream section-y-snug" aria-labelledby="options-title">
         <div className="container-page">
           <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-7">
               <Reveal>
                 <p className="t-kicker text-gold-text">Three options</p>
               </Reveal>
-              <RevealWords id="options-title" className="t-h2 mt-5" text="Choose how much you would like us to do." />
+              <RevealWords id="options-title" className="t-h2 mt-5" text="Choose what you would like us to do." />
+              <Reveal delay={0.1}>
+                <p className="mt-4 t-body italic text-ink-soft">
+                  Every piece we install is yours to keep. All decor remains the property of the client.
+                </p>
+              </Reveal>
             </div>
             <Reveal className="lg:col-span-4 lg:col-start-9" delay={0.1}>
-              <p className="t-body text-ink-soft">
-                Prices are a starting point for a tree up to 9 ft. Your quote is exact before you pay
-                anything.
+              <p className="rounded-[1.25rem] border border-linen bg-ivory px-6 py-4 text-center t-body text-emerald shadow-[inset_0_1px_0_color-mix(in_oklab,var(--ivory)_100%,transparent),inset_0_-2px_0_color-mix(in_oklab,var(--ink)_7%,transparent),0_10px_24px_-16px_color-mix(in_oklab,var(--ink)_45%,transparent)]">
+                Reserve by November 20 to have your installation done by December 10.
               </p>
             </Reveal>
           </div>
 
           {stylingOpen ? (
-            <Stagger className="mt-14 grid gap-6 lg:grid-cols-3" stagger={0.12}>
+            <Stagger className="mt-8 grid gap-6 lg:grid-cols-3" stagger={0.12} amount={0}>
               {options.map((opt, i) => {
                 const custom = opt.slug === "full-service-holiday";
                 return (
@@ -150,11 +154,12 @@ export default function HolidayStylingPage() {
                       tag={opt.images?.length ? undefined : "Sample styling"}
                       photo={opt.images?.[0]}
                       sizes="(min-width: 1024px) 28vw, 92vw"
+                      priority
                     />
-                    <div className="mt-7 flex items-baseline justify-between gap-4">
-                      <h3 className="t-h3">{opt.name}</h3>
+                    <div className="mt-7 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <h3 className="t-h3 whitespace-nowrap">{opt.name}</h3>
                       <p className="shrink-0 text-[0.9375rem] text-emerald">
-                        {custom ? "Custom quote" : `From ${formatCents(opt.priceCents)}`}
+                        {custom ? `Custom quote, from ${formatCents(opt.priceCents)}` : `From ${formatCents(opt.priceCents)}`}
                       </p>
                     </div>
                     <p className="mt-3 t-small text-ink">{opt.shortDescription}</p>
@@ -204,14 +209,14 @@ export default function HolidayStylingPage() {
       </section>
 
       {/* Add-ons and over 9 ft (PRD 6.4) */}
-      <section className="section-y" aria-labelledby="addons-title">
+      <section className="section-y-snug" aria-labelledby="addons-title">
         <div className="container-page grid gap-14 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <Reveal>
-              <p className="t-kicker text-gold-text">Add to any option</p>
+              <p className="t-kicker text-gold-text">Add ons</p>
             </Reveal>
             <RevealWords id="addons-title" className="t-h2 mt-5" text="The finishing touches." />
-            <Stagger className="mt-12 space-y-10" stagger={0.1}>
+            <Stagger className="mt-8 space-y-8" stagger={0.1}>
               {addOns.map((a, i) => (
                 <StaggerItem key={a.title} className="grid gap-3 sm:grid-cols-[3rem_1fr]">
                   <span className="t-numeral text-[1.0625rem] text-gold-text">0{i + 1}</span>
@@ -227,11 +232,11 @@ export default function HolidayStylingPage() {
             <div className="on-emerald rounded-card bg-emerald p-8 text-ivory sm:p-10">
               <p className="t-kicker text-gold">Custom quote</p>
               <h3 className="mt-5 font-heading text-[1.75rem] leading-tight text-ivory">
-                Trees over 9 ft, and businesses.
+                Trees over 9 ft and businesses.
               </h3>
               <p className="mt-4 t-body text-ivory-soft">
                 Tall trees need more hands and more time, so they take two installation slots. The
-                same goes for lobbies, shops and offices. We quote each one personally.
+                same goes for lobbies, large shops, and offices. We quote each one individually.
               </p>
               <div className="mt-8">
                 <TextLink
@@ -247,13 +252,13 @@ export default function HolidayStylingPage() {
       </section>
 
       {/* Process (PRD 6.4) */}
-      <section className="paper bg-cream section-y" aria-labelledby="process-title">
+      <section className="paper bg-cream section-y-snug" aria-labelledby="process-title">
         <div className="container-page">
           <Reveal>
             <p className="t-kicker text-gold-text">How it works</p>
           </Reveal>
           <RevealWords id="process-title" className="t-h2 mt-5" text="Inquire, consult, then styled." />
-          <Stagger as="ol" className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10" stagger={0.12}>
+          <Stagger as="ol" className="mt-10 grid gap-10 md:grid-cols-3 md:gap-10" stagger={0.12}>
             {PROCESS.map((s, i) => (
               <StaggerItem as="li" key={s.title}>
                 <span className="t-numeral block text-[3.5rem] leading-none text-gold-text">{i + 1}</span>
@@ -266,7 +271,7 @@ export default function HolidayStylingPage() {
       </section>
 
       {/* Short FAQ (PRD 6.4) */}
-      <section className="section-y" aria-labelledby="styling-faq">
+      <section className="section-y-snug" aria-labelledby="styling-faq">
         <div className="container-page grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4">
             <Reveal>

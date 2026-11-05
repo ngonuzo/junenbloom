@@ -15,10 +15,12 @@ import {
   Bell,
   Lock,
   ExternalLink,
+  Clock,
 } from "lucide-react";
 import type { StoreState, OrderRecord, OrderStatus } from "@/lib/db/store";
 import { formatCents } from "@/lib/domain/money";
 import { MonogramMark } from "@/components/brand/Wordmark";
+import { SlotsPanel } from "@/components/admin/SlotsPanel";
 
 const ALLOWED_FOUNDERS = [
   "sister1@juneandbloomlifestyle.com",
@@ -33,7 +35,7 @@ const ORDER_STATUS_FLOW: OrderStatus[] = [
   "delivered",
 ];
 
-type AdminTab = "orders" | "today" | "inventory" | "inquiries" | "settings";
+type AdminTab = "orders" | "today" | "inventory" | "inquiries" | "slots" | "settings";
 
 export default function AdminDashboardPage() {
   const [founderEmail, setFounderEmail] = useState<string>(ALLOWED_FOUNDERS[0]);
@@ -396,6 +398,7 @@ export default function AdminDashboardPage() {
           { id: "today" as const, label: "Today & Run Sheet", icon: Calendar },
           { id: "inventory" as const, label: "Inventory & Products", icon: Boxes },
           { id: "inquiries" as const, label: "Styling Pipeline", icon: Sparkles },
+          { id: "slots" as const, label: "Board Slots", icon: Clock },
           { id: "settings" as const, label: "Offer Switches", icon: Sliders },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -796,6 +799,9 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* TAB: BOARD SLOTS AND CALENDAR (FR-86 / T8.8) */}
+      {activeTab === "slots" && <SlotsPanel store={store} onChanged={fetchStore} toast={showToast} />}
+
       {/* TAB 5: SETTINGS & FOUR AVAILABILITY SWITCHES (FR-92) */}
       {activeTab === "settings" && (
         <div className="rounded-[4px] bg-[var(--surface-cream)] p-6 sm:p-8 space-y-6">
@@ -827,7 +833,7 @@ export default function AdminDashboardPage() {
               },
               {
                 key: "takedownStorageOpen",
-                label: "January Takedown & Storage Add-On",
+                label: "January Take Down & Storage Add-On",
                 active: store.settings.takedownStorageOpen,
               },
             ].map((sw) => (
@@ -870,6 +876,7 @@ export default function AdminDashboardPage() {
           { id: "today" as const, label: "Today" },
           { id: "inventory" as const, label: "Inventory" },
           { id: "inquiries" as const, label: "Inquiries" },
+          { id: "slots" as const, label: "Slots" },
           { id: "settings" as const, label: "Switches" },
         ].map((item) => (
           <button

@@ -4,6 +4,8 @@ import {
   writeStore,
   createOrderInStore,
   createInquiryInStore,
+  ensureRollingSlots,
+  dayIso,
   type OrderStatus,
   type InquiryStatus,
 } from "@/lib/db/store";
@@ -50,6 +52,10 @@ export async function POST(req: Request) {
         id: `msg-${Date.now()}`,
         name: body.payload.name,
         email: body.payload.email,
+        phone:
+          typeof body.payload.phone === "string" && body.payload.phone.trim()
+            ? body.payload.phone.trim().slice(0, 40)
+            : undefined,
         topic: body.payload.topic || "General inquiry",
         message: body.payload.message,
         createdAt: new Date().toISOString(),
@@ -90,6 +96,64 @@ export async function POST(req: Request) {
         writeStore(store);
       }
       return NextResponse.json({ ok: true, settings: store.settings });
+    }
+
+    // Board slots (FR-86). Saving the windows applies to every upcoming day.
+    if (action === "save_board_windows") {
+      const store = readStore();
+      const raw = Array.isArray(body.payload?.windows) ? body.payload.windows : [];
+      const seen = new Set<string>();
+      const windows = raw
+        .map((w: { label?: unknown; capacity?: unknown }) => ({
+          label: String(w?.label ?? "").trim().slice(0, 40),
+          capacity: Math.min(50, Math.max(0, Math.round(Number(w?.capacity) || 0))),
+        }))
+        .filter((w: { label: string }) => w.label && !seen.has(w.label) && seen.add(w.label))
+        .slice(0, 6);
+      if (windows.length === 0) {
+        return NextResponse.json({ ok: false, error: "Add at least one window." }, { status: 422 });
+      }
+      const daysAhead = Math.min(90, Math.max(7, Math.round(Number(body.payload?.daysAhead) || 21)));
+      const today = dayIso(0);
+      const labels = new Set(windows.map((w: { label: string }) => w.label));
+      // Upcoming windows no longer offered are removed unless someone has booked them.
+      store.slots = store.slots.filter((s) => s.day < today || s.booked > 0 || labels.has(s.window));
+      for (const s of store.slots) {
+        const w = windows.find((x: { label: string }) => x.label === s.window);
+        if (s.day >= today && w) s.capacity = Math.max(w.capacity, s.booked);
+      }
+      store.settings.boardWindows = windows;
+      store.settings.boardDaysAhead = daysAhead;
+      ensureRollingSlots(store);
+      writeStore(store);
+      return NextResponse.json({ ok: true, settings: store.settings });
+    }
+
+    if (action === "update_slot") {
+      const store = readStore();
+      const slot = store.slots.find((s) => s.id === body.payload?.id);
+      if (!slot) return NextResponse.json({ ok: false, error: "Slot not found." }, { status: 404 });
+      if (body.payload.capacity !== undefined) {
+        const cap = Math.round(Number(body.payload.capacity));
+        if (Number.isFinite(cap)) slot.capacity = Math.min(50, Math.max(slot.booked, cap));
+      }
+      if (typeof body.payload.blocked === "boolean") slot.blocked = body.payload.blocked;
+      writeStore(store);
+      return NextResponse.json({ ok: true, slot });
+    }
+
+    if (action === "toggle_closed_date") {
+      const store = readStore();
+      const day = String(body.payload?.day ?? "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+        return NextResponse.json({ ok: false, error: "Invalid date." }, { status: 422 });
+      }
+      const closed = new Set(store.settings.blockedDates);
+      if (closed.has(day)) closed.delete(day);
+      else closed.add(day);
+      store.settings.blockedDates = [...closed].sort();
+      writeStore(store);
+      return NextResponse.json({ ok: true, blockedDates: store.settings.blockedDates });
     }
 
     if (action === "advance_inquiry_status") {

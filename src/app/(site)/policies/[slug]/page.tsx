@@ -2,10 +2,41 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { POLICIES, POLICIES_UPDATED } from "@/content/policies";
+import { POLICIES } from "@/content/policies";
 import { HeroTitle } from "@/components/ui/HeroTitle";
 import { Reveal } from "@/components/ui/Reveal";
 import { SITE } from "@/content/site";
+
+/** Turns the contact email and phone number inside policy text into links. */
+function withContactLinks(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let rest = text;
+  let key = 0;
+  while (rest.length > 0) {
+    const e = rest.indexOf(SITE.email);
+    const p = rest.indexOf(SITE.phone);
+    const hits = [e, p].filter((n) => n >= 0);
+    if (hits.length === 0) {
+      parts.push(rest);
+      break;
+    }
+    const at = Math.min(...hits);
+    const isEmail = at === e;
+    const match = isEmail ? SITE.email : SITE.phone;
+    if (at > 0) parts.push(rest.slice(0, at));
+    parts.push(
+      <a
+        key={key++}
+        href={isEmail ? `mailto:${SITE.email}` : SITE.phoneHref}
+        className="link-quiet whitespace-nowrap text-emerald"
+      >
+        {match}
+      </a>,
+    );
+    rest = rest.slice(at + match.length);
+  }
+  return parts;
+}
 
 export function generateStaticParams() {
   return Object.keys(POLICIES).map((slug) => ({ slug }));
@@ -52,12 +83,17 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
         <article className="lg:col-span-7 lg:col-start-5">
           <HeroTitle className="t-h1" text={policy.title} delay={60} />
-          <p className="anim-fade-up mt-5 t-lede text-ink-soft" style={{ "--d": "300ms" } as React.CSSProperties}>
+          <p className="anim-fade-up mt-5 t-lede font-semibold text-ink" style={{ "--d": "300ms" } as React.CSSProperties}>
             {policy.summary}
           </p>
-          <p className="anim-fade mt-3 text-[0.8125rem] text-muted" style={{ "--d": "400ms" } as React.CSSProperties}>
-            Last updated {POLICIES_UPDATED}
-          </p>
+          {policy.note && (
+            <p
+              className="anim-fade-up mt-3 t-body max-w-[65ch] text-ink"
+              style={{ "--d": "360ms" } as React.CSSProperties}
+            >
+              {policy.note}
+            </p>
+          )}
 
           <div className="mt-14 space-y-12">
             {policy.sections.map((s, i) => (
@@ -66,7 +102,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
                 <div className="mt-4 space-y-4">
                   {s.body.map((para) => (
                     <p key={para.slice(0, 32)} className="t-body max-w-[65ch] text-ink">
-                      {para}
+                      {withContactLinks(para)}
                     </p>
                   ))}
                 </div>

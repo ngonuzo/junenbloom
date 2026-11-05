@@ -68,7 +68,7 @@ const GROUPS = [
     items: [
       {
         q: "How do I book a date?",
-        a: "Send an inquiry and we will reply within one business day. After a short call we send a written quote. Accepting it and paying a 40 percent retainer holds your date. The balance is due 48 hours before we arrive.",
+        a: "Send an inquiry and we will reply within 1-2 business days. After a short call we send a written quote. Accepting it and paying a 40% retainer holds your date. The balance is due 48 hours before we arrive.",
       },
       {
         q: "What if my tree is taller than 9 ft?",

@@ -62,7 +62,7 @@ export function Header() {
                     <Link
                       href={link.href}
                       aria-current={active ? "page" : undefined}
-                      className={`group relative inline-block py-2 text-[1rem] tracking-[0.005em] transition-colors duration-300 ${
+                      className={`group relative inline-block py-2 text-[0.8125rem] font-medium uppercase tracking-[0.12em] transition-colors duration-300 ${
                         active ? "text-emerald" : "text-ink-soft hover:text-emerald"
                       }`}
                     >
@@ -83,14 +83,14 @@ export function Header() {
           <div className="flex items-center justify-self-end gap-1 sm:gap-3">
             <Link
               href="/our-story"
-              className="hidden px-2 py-2 text-[1rem] text-ink-soft transition-colors hover:text-emerald lg:inline-block"
+              className="hidden px-2 py-2 text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-ink-soft transition-colors hover:text-emerald lg:inline-block"
             >
               Our Story
             </Link>
             <Link
               href="/order"
               aria-label={count > 0 ? `Your order, ${count} ${count === 1 ? "item" : "items"}` : "Your order"}
-              className="group inline-flex h-10 items-center gap-2 rounded-card px-2.5 text-[1rem] text-emerald transition-colors hover:text-gold-text sm:px-3"
+              className="group inline-flex h-10 items-center gap-2 rounded-card px-2.5 text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-emerald transition-colors hover:text-gold-text sm:px-3"
             >
               <BagIcon size={20} />
               <span className="hidden sm:inline">Order</span>
