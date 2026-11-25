@@ -56,8 +56,8 @@ const STEPS = [
   { title: "Delivered with care", body: "We pack it by hand and bring it to the door, or have it ready when you arrive." },
 ];
 
-export default function HomePage() {
-  const store = readStore();
+export default async function HomePage() {
+  const store = await readStore();
   const featured = store.products
     .filter((p) => p.type === "gift" && p.status === "live")
     .sort((a, b) => Number(b.featured) - Number(a.featured))

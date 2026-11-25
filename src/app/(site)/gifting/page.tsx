@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     "Signature gift boxes of five or six well-chosen pieces, each with a handwritten card. Delivered across the GTA or picked up free.",
 };
 
-export default function GiftingPage() {
-  const store = readStore();
+export default async function GiftingPage() {
+  const store = await readStore();
   const gifts = store.products.filter(
     (p) => p.type === "gift" && (p.status === "live" || p.status === "sample")
   );

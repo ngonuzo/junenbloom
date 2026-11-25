@@ -1,6 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
 import crypto from "node:crypto";
+import { getBackend, StoreConflictError } from "./persistence";
 import { DEFAULT_ZONES, DEFAULT_PREFIX_MAP, type DeliveryZone } from "../domain/zones";
 import { formatPublicId } from "../domain/ids";
 import { calculateRetainer } from "../domain/pricing";
@@ -226,8 +225,10 @@ export interface StoreState {
   }>;
 }
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const STORE_PATH = path.join(DATA_DIR, "jb-store.json");
+export { StoreConflictError } from "./persistence";
+
+/** The version each loaded store object was read at, so its save can detect a clash. */
+const loadedVersions = new WeakMap<object, number>();
 
 /** Calendar date (YYYY-MM-DD) `offset` days from today, matching generateUpcomingDates. */
 export function dayIso(offset = 0, now: Date = new Date()): string {
@@ -490,12 +491,11 @@ function migrateStore(state: StoreState): StoreState {
     orders,
     inquiries,
   };
-  writeStore(migrated);
   return migrated;
 }
 
-/** Fills settings added after a store was first written, and keeps slots rolling. */
-function prepareStore(state: StoreState): StoreState {
+/** Fills settings added after a store was first written, and keeps slots rolling. Returns true when changed. */
+function prepareStore(state: StoreState): boolean {
   let changed = false;
   if (!state.settings.boardWindows?.length) {
     state.settings.boardWindows = DEFAULT_BOARD_WINDOWS.map((w) => ({ ...w }));
@@ -506,37 +506,63 @@ function prepareStore(state: StoreState): StoreState {
     changed = true;
   }
   if (ensureRollingSlots(state)) changed = true;
-  if (changed) writeStore(state);
+  return changed;
+}
+
+/**
+ * Reads the store: from Postgres when DATABASE_URL is set, otherwise from the
+ * local .data file. A brand-new database is seeded with the starting catalogue.
+ */
+export async function readStore(): Promise<StoreState> {
+  const backend = getBackend();
+  let doc = await backend.load();
+  if (!doc) {
+    const initial = createInitialStore();
+    ensureRollingSlots(initial);
+    doc = await backend.create(initial);
+  }
+  const loaded = doc.data as StoreState;
+  const state = migrateStore(loaded);
+  loadedVersions.set(state, doc.version);
+  const changed = (state !== loaded) || prepareStore(state);
+  if (changed) {
+    try {
+      await writeStore(state);
+    } catch (err) {
+      // Another request saved first; what was read is still fine to show.
+      if (!(err instanceof StoreConflictError)) throw err;
+    }
+  }
   return state;
 }
 
-export function readStore(): StoreState {
-  try {
-    if (fs.existsSync(STORE_PATH)) {
-      const raw = fs.readFileSync(STORE_PATH, "utf8");
-      return prepareStore(migrateStore(JSON.parse(raw) as StoreState));
-    }
-  } catch {
-    // Fallback to initial store
+/**
+ * Saves a store object returned by readStore(). Throws StoreConflictError when
+ * someone else saved since it was read; withStoreRetry() then reruns the work.
+ */
+export async function writeStore(state: StoreState): Promise<void> {
+  const version = loadedVersions.get(state);
+  if (version === undefined) {
+    throw new Error("writeStore() needs the object returned by readStore().");
   }
-  const initial = createInitialStore();
-  ensureRollingSlots(initial);
-  writeStore(initial);
-  return initial;
+  const next = await getBackend().save(state, version);
+  if (next === null) throw new StoreConflictError();
+  loadedVersions.set(state, next);
 }
 
-export function writeStore(state: StoreState): void {
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+/** Runs `work` (which reads, changes and saves the store), retrying on a save clash. */
+export async function withStoreRetry<T>(work: () => Promise<T>, attempts = 5): Promise<T> {
+  for (let i = 1; ; i++) {
+    try {
+      return await work();
+    } catch (err) {
+      if (!(err instanceof StoreConflictError) || i >= attempts) throw err;
+      await new Promise((r) => setTimeout(r, 20 * i + Math.random() * 30));
     }
-    fs.writeFileSync(STORE_PATH, JSON.stringify(state, null, 2), "utf8");
-  } catch {
-    // Ignore read-only filesystem errors in serverless edge environments
   }
 }
 
-export function createOrderInStore(input: {
+export async function createOrderInStore(input: {
   items: Array<{ productSlug: string; optionId?: string; qty: number }>;
   fulfilment: "delivery" | "pickup";
   postalCode: string;
@@ -552,8 +578,8 @@ export function createOrderInStore(input: {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
-}): { order?: OrderRecord; error?: string } {
-  const store = readStore();
+}): Promise<{ order?: OrderRecord; error?: string }> {
+  const store = await readStore();
 
   // Server is the authority on the service area (FR-43): no zone, no delivery.
   const prefix = input.postalCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
@@ -669,11 +695,11 @@ export function createOrderInStore(input: {
   };
 
   store.orders.unshift(order);
-  writeStore(store);
+  await writeStore(store);
   return { order };
 }
 
-export function createInquiryInStore(input: {
+export async function createInquiryInStore(input: {
   optionSlug: string;
   customerName: string;
   customerEmail: string;
@@ -687,8 +713,8 @@ export function createInquiryInStore(input: {
   addOns: string[];
   budgetBand: string;
   notes: string;
-}): StylingInquiryRecord {
-  const store = readStore();
+}): Promise<StylingInquiryRecord> {
+  const store = await readStore();
   store.sequenceCounter += 1;
   const publicId = formatPublicId(new Date(), store.sequenceCounter);
   const product = store.products.find((p) => p.slug === input.optionSlug);
@@ -732,6 +758,6 @@ export function createInquiryInStore(input: {
   };
 
   store.inquiries.unshift(inquiry);
-  writeStore(store);
+  await writeStore(store);
   return inquiry;
 }

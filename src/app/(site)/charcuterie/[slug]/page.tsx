@@ -6,8 +6,8 @@ import { ProductDetail } from "@/components/site/ProductDetail";
 
 export const dynamic = "force-dynamic";
 
-function findBoard(slug: string) {
-  const store = readStore();
+async function findBoard(slug: string) {
+  const store = await readStore();
   const product = store.products.find(
     (p) => p.slug === slug && p.type === "board" && p.status !== "hidden" && p.status !== "archived"
   );
@@ -16,7 +16,7 @@ function findBoard(slug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const { product } = findBoard(slug);
+  const { product } = await findBoard(slug);
   if (!product) return {};
   const cover = product.images?.[0];
   return {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BoardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { store, product } = findBoard(slug);
+  const { store, product } = await findBoard(slug);
   if (!product) notFound();
   return <ProductDetail product={product} store={store} />;
 }

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function OrderPage() {
-  const store = readStore();
+export default async function OrderPage() {
+  const store = await readStore();
   return (
     <OrderForm
       zones={store.zones}

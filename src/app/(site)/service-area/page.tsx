@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     "Delivery zones, fees and days across the Greater Toronto Area, with a postal code checker. Pickup is always available.",
 };
 
-export default function ServiceAreaPage() {
-  const store = readStore();
+export default async function ServiceAreaPage() {
+  const store = await readStore();
 
   return (
     <>

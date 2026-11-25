@@ -35,8 +35,8 @@ const PROCESS = [
   },
 ];
 
-export default function HolidayStylingPage() {
-  const store = readStore();
+export default async function HolidayStylingPage() {
+  const store = await readStore();
   const options = store.products.filter((p) => p.type === "styling" && p.status === "live");
   const { seasonCap, weeklyInstallSlots, takedownStorageOpen, stylingOpen } = store.settings;
 

@@ -35,8 +35,8 @@ const NOTES = [
   },
 ];
 
-export default function CharcuteriePage() {
-  const store = readStore();
+export default async function CharcuteriePage() {
+  const store = await readStore();
   const boards = store.products.filter((p) => p.type === "board" && p.status === "live");
   const pictured = boards.find((b) => b.images?.some((img) => img.src === PAGE_IMAGERY.charcuterieHero.src));
 

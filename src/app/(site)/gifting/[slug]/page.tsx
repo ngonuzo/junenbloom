@@ -6,8 +6,8 @@ import { ProductDetail } from "@/components/site/ProductDetail";
 
 export const dynamic = "force-dynamic";
 
-function findGift(slug: string) {
-  const store = readStore();
+async function findGift(slug: string) {
+  const store = await readStore();
   const product = store.products.find(
     (p) => p.slug === slug && p.type === "gift" && p.status !== "hidden" && p.status !== "archived"
   );
@@ -16,7 +16,7 @@ function findGift(slug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const { product } = findGift(slug);
+  const { product } = await findGift(slug);
   if (!product) return {};
   const cover = product.images?.[0];
   return {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function GiftProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { store, product } = findGift(slug);
+  const { store, product } = await findGift(slug);
   if (!product) notFound();
   return <ProductDetail product={product} store={store} />;
 }

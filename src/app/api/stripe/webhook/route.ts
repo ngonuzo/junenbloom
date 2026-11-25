@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     if (event.type === "checkout.session.completed") {
       const publicId = event.data?.object?.metadata?.orderPublicId;
       if (publicId) {
-        const store = readStore();
+        const store = await readStore();
         const order = store.orders.find((o) => o.publicId === publicId);
         if (order && order.status === "awaiting_payment") {
           order.status = "received";
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
             at: new Date().toISOString(),
             event: `Stripe webhook (${event.id}) verified payment`,
           });
-          writeStore(store);
+          await writeStore(store);
         }
       }
     }

@@ -10,8 +10,8 @@ import { MotionProvider } from "@/components/ui/MotionProvider";
 
 export const dynamic = "force-dynamic";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
-  const store = readStore();
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const store = await readStore();
   const banner = store.settings.bannerText.trim();
 
   return (

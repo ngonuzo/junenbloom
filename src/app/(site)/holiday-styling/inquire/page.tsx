@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   description: "Tell us about your home and preferred dates. We reply personally within 1-2 business days.",
 };
 
-export default function InquirePage() {
-  const store = readStore();
+export default async function InquirePage() {
+  const store = await readStore();
   return (
     <div className="container-page pb-24 pt-8 sm:pb-32 sm:pt-12">
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">

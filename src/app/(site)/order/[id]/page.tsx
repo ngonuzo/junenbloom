@@ -40,7 +40,7 @@ export default async function OrderStatusPage({
 }) {
   const { id } = await params;
   const { t, confirmed } = await searchParams;
-  const store = readStore();
+  const store = await readStore();
   const order = store.orders.find((o) => o.publicId === id);
 
   if (!order || !t || t !== order.token) {
