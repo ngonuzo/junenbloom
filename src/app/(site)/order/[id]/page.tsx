@@ -96,8 +96,9 @@ export default async function OrderStatusPage({
             </span>
             <HeroTitle className="t-h1 mt-8" text={`Thank you, ${firstName}.`} />
             <p className="anim-fade-up mt-6 t-lede text-ink" style={{ "--d": "400ms" } as React.CSSProperties}>
-              Order <span className="font-medium text-emerald">{order.publicId}</span> is confirmed. A
-              receipt is on its way to {order.customerEmail}. Keep this page to follow your order.
+              Order <span className="font-medium text-emerald">{order.publicId}</span> is confirmed. Your
+              receipt is on its way to {order.customerEmail}, with a link back to this page so you can
+              follow your order as we prepare it.
             </p>
           </>
         ) : (

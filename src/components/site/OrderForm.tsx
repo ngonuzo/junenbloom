@@ -176,24 +176,7 @@ export function OrderForm({
     return <div className="min-h-[60vh]" aria-busy="true" />;
   }
 
-  if (items.length === 0) {
-    return (
-      <section className="container-page flex min-h-[60vh] flex-col items-center justify-center py-24 text-center">
-        <Ampersand variant="italic" className="!h-14 text-gold-text opacity-80" />
-        <h1 className="t-h1 mt-8">Nothing here yet.</h1>
-        <p className="mt-5 max-w-md t-lede text-ink-soft">
-          Choose a signature box or a board, and it will wait for you here.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-9 gap-y-5">
-          <ButtonLink href="/gifting" size="lg">
-            Shop Gifting
-          </ButtonLink>
-          <TextLink href="/charcuterie">Reserve a board</TextLink>
-        </div>
-      </section>
-    );
-  }
-
+  // Checked before the empty-cart screen: the cart is cleared as the buyer leaves for the order page.
   if (pending) {
     return (
       <div className="container-page pb-24 pt-8 sm:pb-32 sm:pt-12">
@@ -241,6 +224,24 @@ export function OrderForm({
           </aside>
         </div>
       </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <section className="container-page flex min-h-[60vh] flex-col items-center justify-center py-24 text-center">
+        <Ampersand variant="italic" className="!h-14 text-gold-text opacity-80" />
+        <h1 className="t-h1 mt-8">Nothing here yet.</h1>
+        <p className="mt-5 max-w-md t-lede text-ink-soft">
+          Choose a signature box or a board, and it will wait for you here.
+        </p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-9 gap-y-5">
+          <ButtonLink href="/gifting" size="lg">
+            Shop Gifting
+          </ButtonLink>
+          <TextLink href="/charcuterie">Reserve a board</TextLink>
+        </div>
+      </section>
     );
   }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendOrderPaidEmails } from "@/lib/notify/order-emails";
 import { markOrderPaid, readStore, withStoreRetry } from "@/lib/db/store";
 import { getSquarePayment, isValidSquareSignature, type SquarePayment } from "@/lib/payments/square";
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   const store = await readStore();
   const order = store.orders.find((o) => o.publicId === payment.reference_id);
   if (order) {
-    await withStoreRetry(() =>
+    const paid = await withStoreRetry(() =>
       markOrderPaid(order.id, {
         provider: "square",
         id: payment.id,
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
         receiptUrl: payment.receipt_url,
       })
     );
+    if (paid.order && !paid.alreadyPaid) await sendOrderPaidEmails(paid.order, new URL(req.url).origin);
   }
   return NextResponse.json({ ok: true });
 }

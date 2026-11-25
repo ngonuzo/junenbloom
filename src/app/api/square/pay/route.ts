@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+import { sendOrderPaidEmails } from "@/lib/notify/order-emails";
 import { markOrderPaid, readStore, withStoreRetry, writeStore } from "@/lib/db/store";
 import { createSquarePayment, squareConfigured } from "@/lib/payments/square";
 
@@ -41,9 +42,10 @@ export async function POST(req: Request) {
     if (process.env.NODE_ENV === "production") {
       return NextResponse.json({ ok: false, error: "Payments are not set up yet." }, { status: 503 });
     }
-    await withStoreRetry(() =>
+    const paid = await withStoreRetry(() =>
       markOrderPaid(order.id, { provider: "test", id: `test-${Date.now()}`, amountCents: order.totalCents, at: new Date().toISOString() })
     );
+    if (paid.order && !paid.alreadyPaid) await sendOrderPaidEmails(paid.order, new URL(req.url).origin);
     return NextResponse.json({ ok: true, status: "paid" });
   }
 
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
 
   const payment = result.payment;
   if (payment && payment.status === "COMPLETED") {
-    await withStoreRetry(() =>
+    const paid = await withStoreRetry(() =>
       markOrderPaid(order.id, {
         provider: "square",
         id: payment.id,
@@ -80,6 +82,7 @@ export async function POST(req: Request) {
         receiptUrl: payment.receipt_url,
       })
     );
+    if (paid.order && !paid.alreadyPaid) await sendOrderPaidEmails(paid.order, new URL(req.url).origin);
     return NextResponse.json({ ok: true, status: "paid" });
   }
   if (payment && (payment.status === "APPROVED" || payment.status === "PENDING")) {
