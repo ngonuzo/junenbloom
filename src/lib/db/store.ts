@@ -223,6 +223,11 @@ export interface StoreState {
     message: string;
     createdAt: string;
   }>;
+  /** Founders' sign-in bookkeeping: used one-time links and recent link requests. */
+  adminAuth?: {
+    usedNonces: Array<{ nonce: string; exp: number }>;
+    requests: Array<{ email: string; at: number }>;
+  };
 }
 
 export { StoreConflictError } from "./persistence";

@@ -22,11 +22,6 @@ import { formatCents } from "@/lib/domain/money";
 import { MonogramMark } from "@/components/brand/Wordmark";
 import { SlotsPanel } from "@/components/admin/SlotsPanel";
 
-const ALLOWED_FOUNDERS = [
-  "sister1@juneandbloomlifestyle.com",
-  "sister2@juneandbloomlifestyle.com",
-];
-
 const ORDER_STATUS_FLOW: OrderStatus[] = [
   "received",
   "preparing",
@@ -38,9 +33,7 @@ const ORDER_STATUS_FLOW: OrderStatus[] = [
 type AdminTab = "orders" | "today" | "inventory" | "inquiries" | "slots" | "settings";
 
 export default function AdminDashboardPage() {
-  const [founderEmail, setFounderEmail] = useState<string>(ALLOWED_FOUNDERS[0]);
-  const [authenticated, setAuthenticated] = useState<boolean>(true);
-  const [authError, setAuthError] = useState<string>("");
+  const [founderEmail, setFounderEmail] = useState<string>("");
 
   const [store, setStore] = useState<StoreState | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>("orders");
@@ -57,9 +50,31 @@ export default function AdminDashboardPage() {
 
   const fetchStore = useCallback(async () => {
     const res = await fetch("/api/store");
+    if (res.status === 401) {
+      // Session ended (signed out elsewhere, or expired): back to sign-in.
+      window.location.replace("/admin/login");
+      return;
+    }
+    if (!res.ok) return;
     const data = (await res.json()) as StoreState;
     setStore(data);
   }, []);
+
+  useEffect(() => {
+    fetch("/api/admin/auth")
+      .then((r) => r.json())
+      .then((d) => setFounderEmail(d.email === "local" ? "local preview" : d.email ?? ""))
+      .catch(() => {});
+  }, []);
+
+  async function signOut() {
+    await fetch("/api/admin/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "logout" }),
+    });
+    window.location.replace("/admin/login");
+  }
 
   useEffect(() => {
     fetchStore();
@@ -71,20 +86,6 @@ export default function AdminDashboardPage() {
   function showToast(msg: string) {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
-  }
-
-  function handleLoginSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const clean = founderEmail.trim().toLowerCase();
-    if (!ALLOWED_FOUNDERS.includes(clean)) {
-      setAuthError(
-        "Access refused: Only the two allow-listed founder emails may enter the studio."
-      );
-      setAuthenticated(false);
-      return;
-    }
-    setAuthError("");
-    setAuthenticated(true);
   }
 
   async function advanceOrderStatus(order: OrderRecord) {
@@ -150,68 +151,6 @@ export default function AdminDashboardPage() {
     setNewProdDesc("");
     await fetchStore();
     showToast("New gift box published to storefront");
-  }
-
-  if (!authenticated) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20">
-        <form
-          onSubmit={handleLoginSubmit}
-          className="rounded-[4px] bg-[var(--surface-cream)] p-8 space-y-5"
-        >
-          <div className="flex items-center gap-3">
-            <MonogramMark size={36} />
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--gold-text)]">
-                Private Studio (FR-80)
-              </p>
-              <h1 className="font-heading text-2xl text-[var(--emerald)]">
-                Founders Allow-List Sign-In
-              </h1>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs uppercase tracking-[0.14em]">
-              Founder Email
-            </label>
-            <input
-              type="email"
-              required
-              value={founderEmail}
-              onChange={(e) => setFounderEmail(e.target.value)}
-              className="w-full rounded-[4px] bg-[var(--ivory)] px-3.5 py-2.5 text-sm text-[var(--ink)]"
-            />
-          </div>
-
-          {authError && (
-            <p className="rounded-[4px] bg-[var(--surface-sage)] p-3 text-xs text-[var(--emerald)]">
-              {authError}
-            </p>
-          )}
-
-          <div className="flex flex-wrap gap-2 text-xs">
-            {ALLOWED_FOUNDERS.map((email) => (
-              <button
-                key={email}
-                type="button"
-                onClick={() => setFounderEmail(email)}
-                className="rounded-full bg-[var(--ivory)] px-3 py-1 text-[var(--emerald)]"
-              >
-                Use {email}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-[4px] bg-[var(--emerald)] py-3.5 text-xs uppercase tracking-[0.16em] font-medium text-[var(--ivory)]"
-          >
-            Verify Founder Access
-          </button>
-        </form>
-      </div>
-    );
   }
 
   if (!store) {
@@ -346,11 +285,11 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setAuthenticated(false)}
+            onClick={signOut}
             className="inline-flex items-center gap-1.5 rounded-[4px] bg-[var(--ivory)] px-3.5 py-2 text-xs text-[var(--ink)]"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>Test Allow-List Gate</span>
+            <span>Sign out</span>
           </button>
         </div>
       </div>

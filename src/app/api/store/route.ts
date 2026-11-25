@@ -11,8 +11,16 @@ import {
   type OrderStatus,
   type InquiryStatus,
 } from "@/lib/db/store";
+import { adminFromRequest } from "@/lib/auth/guard";
 
-export async function GET() {
+/** Actions anyone on the public site may take. Everything else needs a signed-in founder. */
+const PUBLIC_ACTIONS = new Set(["create_order", "create_inquiry", "notify_me", "contact_message"]);
+
+const UNAUTHORISED = () =>
+  NextResponse.json({ ok: false, error: "Please sign in to the studio." }, { status: 401 });
+
+export async function GET(req: Request) {
+  if (!(await adminFromRequest(req))) return UNAUTHORISED();
   const store = await readStore();
   return NextResponse.json(store);
 }
@@ -23,6 +31,9 @@ export async function POST(req: Request) {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
+  }
+  if (!PUBLIC_ACTIONS.has(String(body?.action)) && !(await adminFromRequest(req))) {
+    return UNAUTHORISED();
   }
   try {
     // Each action reads, changes and saves the store; a save clash reruns it from a fresh read.
