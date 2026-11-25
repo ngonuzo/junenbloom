@@ -43,3 +43,4 @@ All notable changes to the June & Bloom Lifestyle Company website are recorded h
 - Square webhook at /api/square/webhook (signature checked) confirms payments the bank finishes later.
 - Unpaid checkouts are kept out of the dashboard's orders and revenue.
 - Stripe removed; FAQ and policies now name Square.
+- Customers can order more than one charcuterie board at once. Each board takes one place in the chosen time window, and checkout says how many places are left if they ask for too many.

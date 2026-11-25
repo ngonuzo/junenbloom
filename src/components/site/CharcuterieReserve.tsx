@@ -49,7 +49,7 @@ export function CharcuterieReserve({
   const router = useRouter();
   const params = useSearchParams();
   const reduce = useReducedMotion();
-  const { addItem, items, removeItem, setSelectedSlot, setDietaryNote } = useCart();
+  const { addItem, setSelectedSlot, setDietaryNote } = useCart();
   const reserveRef = useRef<HTMLDivElement>(null);
 
   const dates = useMemo(
@@ -100,10 +100,7 @@ export function CharcuterieReserve({
   function proceed() {
     setAttempted(true);
     if (!board || !slot || !dietaryValue) return;
-    // One board slot per order: replace any board already in the tray.
-    for (const item of items) {
-      if (item.product.type === "board") removeItem(item.product.slug, item.optionId);
-    }
+    // All boards in one order share the chosen window; each takes one place in it.
     addItem(board, board.options[0]?.id, 1);
     setSelectedSlot({ id: slot.id, day: slot.day, window: slot.window });
     setDietaryNote(dietaryValue);

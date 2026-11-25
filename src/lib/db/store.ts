@@ -648,8 +648,15 @@ export async function createOrderInStore(input: {
   // The board window must still have room (FR-51); it is taken on payment.
   if (input.slotId) {
     const slot = store.slots.find((s) => s.id === input.slotId);
-    if (!slot || slot.blocked || slot.booked >= slot.capacity) {
-      return { error: "That time window has just filled. Please choose another." };
+    const places = Math.max(1, boardPlaces(store, resolvedItems));
+    if (!slot || slot.blocked || slot.capacity - slot.booked < places) {
+      const left = slot && !slot.blocked ? Math.max(0, slot.capacity - slot.booked) : 0;
+      return {
+        error:
+          left > 0
+            ? `That time window has room for ${left} more board${left === 1 ? "" : "s"}. Please lower the number or choose another window.`
+            : "That time window has just filled. Please choose another.",
+      };
     }
   }
 
@@ -703,6 +710,14 @@ export async function createOrderInStore(input: {
   return { order };
 }
 
+/** Each board takes one place in its time window (FR-51). */
+function boardPlaces(store: StoreState, items: { productId: string; qty: number }[]): number {
+  return items.reduce((n, i) => {
+    const product = store.products.find((p) => p.id === i.productId);
+    return product?.type === "board" ? n + i.qty : n;
+  }, 0);
+}
+
 /**
  * Marks an order paid exactly once (FR-14, BR-09). Safe to call from both the
  * payment call and the webhook: a second call changes nothing. Stock and the
@@ -734,14 +749,15 @@ export async function markOrderPaid(
   }
   if (order.slotId) {
     const slot = store.slots.find((s) => s.id === order.slotId);
-    if (!slot || slot.blocked || slot.booked >= slot.capacity) {
+    const places = Math.max(1, boardPlaces(store, order.items));
+    if (!slot || slot.blocked || slot.capacity - slot.booked < places) {
       reasons.push(
         slot?.blocked
           ? `Window ${slot.day} (${slot.window}) was closed before payment.`
           : `Window ${order.serviceDate} (${order.window}) filled up before payment.`
       );
     } else {
-      slot.booked += 1;
+      slot.booked += places;
     }
   }
 

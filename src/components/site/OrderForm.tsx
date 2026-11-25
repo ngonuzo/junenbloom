@@ -738,11 +738,7 @@ function SummaryItem({
         </div>
         {item.optionLabel && <p className="mt-0.5 truncate text-[0.8125rem] text-muted">{item.optionLabel}</p>}
         <div className="mt-2.5 flex items-center gap-4">
-          {item.product.type === "board" ? (
-            <span className="text-[0.8125rem] text-muted">One board per slot</span>
-          ) : (
-            <QuantityStepper size="sm" value={item.qty} onChange={onQty} label={`Quantity of ${item.product.name}`} />
-          )}
+          <QuantityStepper size="sm" value={item.qty} onChange={onQty} label={`Quantity of ${item.product.name}`} />
           <button
             type="button"
             onClick={onRemove}

@@ -138,4 +138,20 @@ describe("Postgres store", () => {
     const r = await markOrderPaid(order!.id, { provider: "square", id: "p", amountCents: 1, at: new Date().toISOString() });
     expect(r.order!.needsAttention).toBe(true);
   });
+  it("books one window place per board and refuses more than fit", async () => {
+    const s = await readStore();
+    const board = s.products.find((p) => p.type === "board")!;
+    const slot = s.slots.find((x) => !x.blocked && x.booked === 0)!;
+    slot.capacity = 3;
+    board.trackStock = false;
+    await writeStore(s);
+    const input = (qty: number) => ({ ...orderInput(board.slug), slotId: slot.id, items: [{ productSlug: board.slug, optionId: board.options[0]?.id, qty }] });
+
+    const tooMany = await createOrderInStore(input(4));
+    expect(tooMany.error).toMatch(/room for 3 more boards/);
+
+    const { order } = await createOrderInStore(input(2));
+    await markOrderPaid(order!.id, { provider: "square", id: "p", amountCents: order!.totalCents, at: new Date().toISOString() });
+    expect((await readStore()).slots.find((x) => x.id === slot.id)!.booked).toBe(2);
+  });
 });
