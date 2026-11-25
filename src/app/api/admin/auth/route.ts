@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/session";
 import { adminFromRequest } from "@/lib/auth/guard";
 import { escapeHtml, sendEmail } from "@/lib/notify/email";
+import { EMAIL_PALETTE as C } from "@/lib/notify/email-palette";
 
 export const dynamic = "force-dynamic";
 
@@ -80,11 +81,11 @@ export async function POST(req: NextRequest) {
       to: email,
       subject: "Your June & Bloom studio sign-in link",
       text: `Sign in to the June & Bloom studio:\n\n${url}\n\nThis link works once, for ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
-      html: `<div style="font-family:Arial,sans-serif;color:#032A19;line-height:1.6">
-<p style="font-family:Georgia,serif;font-size:20px;color:#122620;margin:0 0 16px">June &amp; Bloom studio</p>
+      html: `<div style="font-family:Arial,sans-serif;color:${C.ink};line-height:1.6">
+<p style="font-family:Georgia,serif;font-size:20px;color:${C.emerald};margin:0 0 16px">June &amp; Bloom studio</p>
 <p>Tap the button to sign in. It works once, for ${LINK_MINUTES} minutes.</p>
-<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#122620;color:#FDFBF7;padding:12px 22px;border-radius:4px;text-decoration:none;display:inline-block">Sign in to the studio</a></p>
-<p style="font-size:13px;color:#455F4F">If you did not ask for this, you can ignore this email.</p>
+<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:${C.emerald};color:${C.ivory};padding:12px 22px;border-radius:4px;text-decoration:none;display:inline-block">Sign in to the studio</a></p>
+<p style="font-size:13px;color:${C.muted}">If you did not ask for this, you can ignore this email.</p>
 </div>`,
     });
     if (!sent.ok) {
