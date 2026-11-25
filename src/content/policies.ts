@@ -20,7 +20,7 @@ export const POLICIES: Record<string, Policy> = {
       {
         heading: "Orders and prices",
         body: [
-          "All prices are in Canadian dollars. Gift boxes and charcuterie boards are paid in full when you order, through Stripe's secure checkout. Your order is confirmed once payment is received.",
+          "All prices are in Canadian dollars. Gift boxes and charcuterie boards are paid in full when you order, through Square's secure payment form. Your order is confirmed once payment is received.",
           "Prices shown as \"from\" depend on the edition or size you choose. The exact amount is always shown before you pay.",
         ],
       },
@@ -134,7 +134,7 @@ export const POLICIES: Record<string, Policy> = {
       {
         heading: "What we collect",
         body: [
-          "Only what we need to fulfil your order or inquiry: names, contact details, addresses and the message for the card. Card details are handled by Stripe and never reach our servers.",
+          "Only what we need to fulfil your order or inquiry: names, contact details, addresses and the message for the card. Card details are handled by Square and never reach our servers.",
         ],
       },
       {

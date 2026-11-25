@@ -18,6 +18,7 @@ import { DateChoiceCalendar, localIso } from "@/components/ui/DateChoiceCalendar
 import { EASE_LUXE } from "@/components/ui/Reveal";
 import { slotToneFor } from "@/lib/catalog";
 import { useCart, type CartItem } from "./CartContext";
+import { SquarePayment } from "./SquarePayment";
 
 const WINDOWS = [
   { value: "10:00 AM – 1:00 PM", title: "Morning", detail: "10 am to 1 pm" },
@@ -72,6 +73,8 @@ export function OrderForm({
   const [terms, setTerms] = useState(false);
   const [tried, setTried] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Set once the order is saved; the Pay step then takes the card.
+  const [pending, setPending] = useState<{ publicId: string; token: string; totalCents: number } | null>(null);
   const [error, setError] = useState("");
 
   const hasBoard = items.some((i) => i.product.type === "board");
@@ -157,8 +160,8 @@ export function OrderForm({
       });
       const data = await res.json();
       if (data.ok && data.order) {
-        clearCart();
-        router.push(`/order/${data.order.publicId}?t=${data.order.token}&confirmed=1`);
+        setPending({ publicId: data.order.publicId, token: data.order.token, totalCents: data.order.totalCents });
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
         return;
       }
       setError(data.error ?? "Something went wrong on our side. Please try again.");
@@ -188,6 +191,56 @@ export function OrderForm({
           <TextLink href="/charcuterie">Reserve a board</TextLink>
         </div>
       </section>
+    );
+  }
+
+  if (pending) {
+    return (
+      <div className="container-page pb-24 pt-8 sm:pb-32 sm:pt-12">
+        <Progress step={2} />
+        <h1 className="t-h1 mt-10">Payment</h1>
+        <div className="mt-10 grid gap-12 lg:grid-cols-12 lg:gap-10">
+          <section className="lg:col-span-7" aria-labelledby="pay-title">
+            <h2 id="pay-title" className="t-h3">
+              Card details
+            </h2>
+            <p className="mt-2 t-small text-ink-soft">
+              Order {pending.publicId}. Your details are saved; nothing is charged until you pay.
+            </p>
+            <div className="mt-6 max-w-xl">
+              <SquarePayment
+                publicId={pending.publicId}
+                token={pending.token}
+                totalCents={pending.totalCents}
+                buyer={{ name, email, phone, postalCode: fulfilment === "delivery" ? postal : undefined }}
+                onPaid={() => {
+                  clearCart();
+                  router.push(`/order/${pending.publicId}?t=${pending.token}&confirmed=1`);
+                }}
+              />
+            </div>
+          </section>
+          <aside className="lg:col-span-5">
+            <div className="rounded-card bg-cream p-6 sm:p-8">
+              <p className="t-kicker text-gold-text">Your order</p>
+              <ul className="mt-4 space-y-2 t-small text-ink">
+                {items.map((i) => (
+                  <li key={`${i.product.slug}-${i.optionId ?? ""}`} className="flex justify-between gap-4">
+                    <span>
+                      {i.product.name}
+                      {i.qty > 1 ? ` × ${i.qty}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-6 flex items-baseline justify-between font-heading text-[1.375rem] text-emerald">
+                <span>Total</span>
+                <span className="tabular-nums">{formatCents(pending.totalCents)}</span>
+              </p>
+            </div>
+          </aside>
+        </div>
+      </div>
     );
   }
 
@@ -543,7 +596,7 @@ export function OrderForm({
               )}
             </Button>
             <p className="mt-4 text-center text-[0.8125rem] leading-relaxed text-muted">
-              Secure payment by Stripe. Card, Apple Pay and Google Pay.
+              Next, pay securely by card through Square.
             </p>
           </div>
         </aside>
@@ -552,20 +605,20 @@ export function OrderForm({
   );
 }
 
-function Progress() {
+function Progress({ step = 1 }: { step?: number }) {
   const steps = ["Choose", "Details", "Pay"];
   return (
     <ol className="flex items-center gap-6 text-[0.8125rem]" aria-label="Checkout progress">
       {steps.map((s, i) => (
-        <li key={s} aria-current={i === 1 ? "step" : undefined} className="flex items-center gap-2.5">
+        <li key={s} aria-current={i === step ? "step" : undefined} className="flex items-center gap-2.5">
           <span
             className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${
-              i === 0 ? "bg-linen text-gold-text" : i === 1 ? "bg-emerald text-ivory" : "bg-cream text-ink/45"
+              i < step ? "bg-linen text-gold-text" : i === step ? "bg-emerald text-ivory" : "bg-cream text-ink/45"
             }`}
           >
-            {i === 0 ? <CheckIcon size={12} /> : i + 1}
+            {i < step ? <CheckIcon size={12} /> : i + 1}
           </span>
-          <span className={i === 2 ? "text-ink/45" : "text-emerald"}>{s}</span>
+          <span className={i > step ? "text-ink/45" : "text-emerald"}>{s}</span>
         </li>
       ))}
     </ol>

@@ -134,6 +134,16 @@ export interface OrderRecord {
   items: OrderItemRecord[];
   createdAt: string;
   events: Array<{ at: string; event: string; note?: string }>;
+  /** Set once the payment is confirmed (by the payment call or the webhook). */
+  payment?: {
+    provider: "square" | "test";
+    id: string;
+    amountCents: number;
+    at: string;
+    receiptUrl?: string;
+  };
+  /** Number of card attempts; part of each attempt's idempotency key. */
+  paymentAttempts?: number;
 }
 
 export type InquiryStatus =
@@ -362,7 +372,7 @@ export function createInitialStore(): StoreState {
         ],
         createdAt: new Date(Date.now() - 3600 * 1000 * 5).toISOString(),
         events: [
-          { at: new Date(Date.now() - 3600 * 1000 * 5).toISOString(), event: "Order paid via Stripe Checkout" },
+          { at: new Date(Date.now() - 3600 * 1000 * 5).toISOString(), event: "Paid by card (sample)" },
           { at: new Date(Date.now() - 3600 * 1000 * 2).toISOString(), event: "Advanced to Preparing by June" },
         ],
       },
@@ -405,7 +415,7 @@ export function createInitialStore(): StoreState {
         ],
         createdAt: new Date(Date.now() - 3600 * 1000 * 1).toISOString(),
         events: [
-          { at: new Date(Date.now() - 3600 * 1000 * 1).toISOString(), event: "Order paid via Stripe Checkout" },
+          { at: new Date(Date.now() - 3600 * 1000 * 1).toISOString(), event: "Paid by card (sample)" },
         ],
       },
     ],
@@ -618,14 +628,10 @@ export async function createOrderInStore(input: {
     const qty = Math.max(1, Math.floor(reqItem.qty));
     subtotalCents += unitCents * qty;
 
-    if (product.trackStock) {
-      if (product.stockOnHand < qty) {
-        needsAttention = true;
-        attentionReason = `Last-item race on ${product.name}: stock was ${product.stockOnHand} when payment completed.`;
-        product.stockOnHand = 0;
-      } else {
-        product.stockOnHand -= qty;
-      }
+    // Checked now so a buyer is never charged for something already gone.
+    // Stock is only taken when payment is confirmed (markOrderPaid).
+    if (product.trackStock && product.stockOnHand < qty) {
+      return { error: `${product.name} has just sold out. Please choose another.` };
     }
 
     resolvedItems.push({
@@ -639,18 +645,11 @@ export async function createOrderInStore(input: {
     });
   }
 
-  // If slotId is provided, decrement slot capacity (FR-51 / BR-09)
+  // The board window must still have room (FR-51); it is taken on payment.
   if (input.slotId) {
     const slot = store.slots.find((s) => s.id === input.slotId);
-    if (slot) {
-      if (slot.blocked || slot.booked >= slot.capacity) {
-        needsAttention = true;
-        attentionReason = slot.blocked
-          ? `Slot ${slot.day} (${slot.window}) was closed before payment.`
-          : `Slot ${slot.day} (${slot.window}) reached capacity simultaneously.`;
-      } else {
-        slot.booked += 1;
-      }
+    if (!slot || slot.blocked || slot.booked >= slot.capacity) {
+      return { error: "That time window has just filled. Please choose another." };
     }
   }
 
@@ -683,7 +682,7 @@ export async function createOrderInStore(input: {
     deliveryCents,
     taxCents,
     totalCents,
-    status: "received",
+    status: "awaiting_payment",
     needsAttention,
     attentionReason,
     owner: resolvedItems.some((i) => i.productSlug.includes("board"))
@@ -694,7 +693,7 @@ export async function createOrderInStore(input: {
     events: [
       {
         at: new Date().toISOString(),
-        event: "Order created & verified (Server-side pricing authority)",
+        event: "Order created, awaiting payment (priced on the server)",
       },
     ],
   };
@@ -702,6 +701,62 @@ export async function createOrderInStore(input: {
   store.orders.unshift(order);
   await writeStore(store);
   return { order };
+}
+
+/**
+ * Marks an order paid exactly once (FR-14, BR-09). Safe to call from both the
+ * payment call and the webhook: a second call changes nothing. Stock and the
+ * board window are taken here; if someone else took the last one first, the
+ * order is still paid but flagged "Needs attention" for the founders.
+ */
+export async function markOrderPaid(
+  orderId: string,
+  payment: NonNullable<OrderRecord["payment"]>
+): Promise<{ order?: OrderRecord; alreadyPaid: boolean }> {
+  const store = await readStore();
+  const order = store.orders.find((o) => o.id === orderId);
+  if (!order) return { alreadyPaid: false };
+  if (order.payment || order.status !== "awaiting_payment") return { order, alreadyPaid: true };
+
+  const reasons: string[] = [];
+  if (payment.amountCents !== order.totalCents) {
+    reasons.push(`Paid ${payment.amountCents} cents but the order total is ${order.totalCents}.`);
+  }
+  for (const item of order.items) {
+    const product = store.products.find((p) => p.id === item.productId);
+    if (!product?.trackStock) continue;
+    if (product.stockOnHand < item.qty) {
+      reasons.push(`Last-item race on ${product.name}: stock was ${product.stockOnHand} at payment.`);
+      product.stockOnHand = 0;
+    } else {
+      product.stockOnHand -= item.qty;
+    }
+  }
+  if (order.slotId) {
+    const slot = store.slots.find((s) => s.id === order.slotId);
+    if (!slot || slot.blocked || slot.booked >= slot.capacity) {
+      reasons.push(
+        slot?.blocked
+          ? `Window ${slot.day} (${slot.window}) was closed before payment.`
+          : `Window ${order.serviceDate} (${order.window}) filled up before payment.`
+      );
+    } else {
+      slot.booked += 1;
+    }
+  }
+
+  order.payment = payment;
+  order.status = "received";
+  if (reasons.length) {
+    order.needsAttention = true;
+    order.attentionReason = reasons.join(" ");
+  }
+  order.events.push({
+    at: payment.at,
+    event: payment.provider === "square" ? `Paid by card (Square ${payment.id})` : "Marked paid (local test, no card)",
+  });
+  await writeStore(store);
+  return { order, alreadyPaid: false };
 }
 
 export async function createInquiryInStore(input: {

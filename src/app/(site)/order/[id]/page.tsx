@@ -59,6 +59,25 @@ export default async function OrderStatusPage({
     );
   }
 
+  if (order.status === "awaiting_payment") {
+    return (
+      <section className="container-page flex min-h-[60vh] flex-col items-center justify-center py-24 text-center">
+        <Ampersand variant="italic" className="!h-14 text-gold-text opacity-80" />
+        <h1 className="t-h1 mt-8">
+          {confirmed === "1" ? "Your payment is being confirmed." : "This order is not paid yet."}
+        </h1>
+        <p className="mt-5 max-w-md t-lede text-ink-soft">
+          {confirmed === "1"
+            ? "Your bank is finishing the payment. Refresh this page in a minute; it updates on its own once the payment is complete."
+            : `Order ${order.publicId} was saved, but the payment did not go through, so nothing was charged. Please place the order again, or message us and we will help.`}
+        </p>
+        <div className="mt-10">
+          <TextLink href="/contact">Message us</TextLink>
+        </div>
+      </section>
+    );
+  }
+
   const pickup = order.fulfilment === "pickup";
   const steps = STEPS.map((s) => (s.key === "out" && pickup ? { ...s, label: "Ready for pickup" } : s));
   const current = Math.max(0, steps.findIndex((s) => s.key === order.status));

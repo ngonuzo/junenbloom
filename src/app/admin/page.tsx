@@ -253,7 +253,10 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const totalRevenueCents = store.orders.reduce((s, o) => s + o.totalCents, 0);
+  // Checkouts that never reached payment are not orders yet (FR-14).
+  const paidOrders = store.orders.filter((o) => o.status !== "awaiting_payment");
+  const unpaidCount = store.orders.length - paidOrders.length;
+  const totalRevenueCents = paidOrders.reduce((s, o) => s + o.totalCents, 0);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pb-28 space-y-8">
@@ -301,8 +304,13 @@ export default function AdminDashboardPage() {
             Active Orders
           </p>
           <p className="font-heading text-3xl text-[var(--emerald)] mt-1">
-            {store.orders.length}
+            {paidOrders.length}
           </p>
+          {unpaidCount > 0 && (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              {unpaidCount} checkout{unpaidCount === 1 ? "" : "s"} not paid
+            </p>
+          )}
         </div>
         <div className="rounded-[4px] bg-[var(--surface-cream)] p-5">
           <p className="text-xs uppercase tracking-[0.14em] text-[var(--gold-text)]">
@@ -370,7 +378,7 @@ export default function AdminDashboardPage() {
       {/* TAB 1: ORDERS & TRACKER BOARD (FR-81 to FR-83) */}
       {activeTab === "orders" && (
         <div className="space-y-4">
-          {store.orders.map((order) => (
+          {paidOrders.map((order) => (
             <div
               key={order.id}
               className="rounded-[4px] bg-[var(--surface-cream)] p-6 space-y-4"
@@ -482,7 +490,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {store.orders.map((o) => (
+            {paidOrders.map((o) => (
               <div
                 key={o.id}
                 className="rounded-[4px] bg-[var(--ivory)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"

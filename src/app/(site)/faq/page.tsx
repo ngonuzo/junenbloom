@@ -18,7 +18,7 @@ const GROUPS = [
     items: [
       {
         q: "How do I order?",
-        a: "Open any box or board to see what is inside, then tap Order. On the next page you choose delivery or pickup, a date and the words for the card. Payment is handled securely by Stripe.",
+        a: "Open any box or board to see what is inside, then tap Order. On the next page you choose delivery or pickup, a date and the words for the card. Payment is handled securely by Square.",
       },
       {
         q: "How far ahead should I order?",

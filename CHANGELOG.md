@@ -35,3 +35,11 @@ All notable changes to the June & Bloom Lifestyle Company website are recorded h
 - **2026-11-05:** Board Slots tab in the founders' dashboard (FR-86, T8.8): daily windows with capacity, booking horizon (14 to 60 days), per-window capacity changes, close or reopen a window, and close or reopen a whole date (also stops gift deliveries). Board slots now roll forward automatically, so the calendar never runs out; a closed window can no longer be paid for. Tests added for the rolling-slot rule.
 - **2026-11-25:** Orders, inquiries, products, slots and settings are now saved in the Neon Postgres database whenever DATABASE_URL is set (Vercel), and in the local .data file otherwise. Saves are conditional on the version read, and clashing requests are retried, so simultaneous orders keep distinct numbers and stock is never oversold. A new database is seeded with the starting catalogue on first visit. Tests run against an in-memory Postgres.
 - **2026-11-25:** Founders' sign-in (FR-80, T8.1): one-time email link (15 minutes, single use, sent via Resend) for the emails in ADMIN_EMAILS, then a signed 14-day session cookie. Middleware protects every /admin page; the store API refuses admin data and admin actions without a session, while orders, inquiries, contact messages and notify-me stay public. Placeholder allow-list removed; Sign out added. Locally without AUTH_SECRET the dashboard stays open.
+
+## 2026-11-25: Card payments through Square
+
+- New Pay step at checkout. Card details go into Square's secure form; the server charges the total it calculated itself.
+- Stock and time slots are now taken when payment succeeds, not when the form is submitted, so abandoned checkouts hold nothing.
+- Square webhook at /api/square/webhook (signature checked) confirms payments the bank finishes later.
+- Unpaid checkouts are kept out of the dashboard's orders and revenue.
+- Stripe removed; FAQ and policies now name Square.

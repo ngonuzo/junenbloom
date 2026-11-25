@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { createPostgresBackend, setBackend, type StoreBackend } from "@/lib/db/persistence";
 import {
   createOrderInStore,
+  markOrderPaid,
   readStore,
   StoreConflictError,
   withStoreRetry,
@@ -77,22 +78,64 @@ describe("Postgres store", () => {
     expect(emails).toEqual(expect.arrayContaining(["a@x.com", "b@x.com", "c@x.com"]));
   });
 
-  it("gives simultaneous orders distinct numbers and never oversells", async () => {
+  it("gives simultaneous paid orders distinct numbers and never oversells", async () => {
     const s = await readStore();
     const product = s.products.find((p) => p.slug === "signature-mens-box")!;
     product.trackStock = true;
     product.stockOnHand = 1;
     await writeStore(s);
 
-    const results = await Promise.all(
+    // Three buyers check out at once while one box is left...
+    const created = await Promise.all(
       [1, 2, 3].map(() => withStoreRetry(() => createOrderInStore(orderInput("signature-mens-box"))))
     );
-    const orders = results.map((r) => r.order!);
+    const orders = created.map((r) => r.order!);
     expect(new Set(orders.map((o) => o.publicId)).size).toBe(3);
-    expect(orders.filter((o) => !o.needsAttention)).toHaveLength(1);
+    expect(orders.every((o) => o.status === "awaiting_payment")).toBe(true);
 
+    // ...and all three payments land together: one gets the box, two are flagged.
+    const paid = await Promise.all(
+      orders.map((o, i) =>
+        withStoreRetry(() =>
+          markOrderPaid(o.id, { provider: "square", id: `pay-${i}`, amountCents: o.totalCents, at: new Date().toISOString() })
+        )
+      )
+    );
+    expect(paid.filter((r) => !r.order!.needsAttention)).toHaveLength(1);
     const after = await readStore();
     expect(after.products.find((p) => p.slug === "signature-mens-box")!.stockOnHand).toBe(0);
-    expect(after.orders.filter((o) => orders.some((n) => n.id === o.id))).toHaveLength(3);
+  });
+
+  it("refuses checkout when an item is already sold out", async () => {
+    const s = await readStore();
+    const product = s.products.find((p) => p.slug === "signature-mens-box")!;
+    product.trackStock = true;
+    product.stockOnHand = 0;
+    await writeStore(s);
+    const r = await createOrderInStore(orderInput("signature-mens-box"));
+    expect(r.order).toBeUndefined();
+    expect(r.error).toMatch(/sold out/);
+  });
+
+  it("marks an order paid once, however many times it is told", async () => {
+    const { order } = await createOrderInStore(orderInput("signature-mens-box"));
+    const stockBefore = (await readStore()).products.find((p) => p.id === order!.items[0].productId)!.stockOnHand;
+    const pay = { provider: "square" as const, id: "pay-1", amountCents: order!.totalCents, at: new Date().toISOString() };
+    const first = await markOrderPaid(order!.id, pay);
+    const second = await markOrderPaid(order!.id, pay);
+    expect(first.alreadyPaid).toBe(false);
+    expect(second.alreadyPaid).toBe(true);
+    const after = await readStore();
+    const saved = after.orders.find((o) => o.id === order!.id)!;
+    expect(saved.status).toBe("received");
+    expect(saved.payment?.id).toBe("pay-1");
+    const product = after.products.find((p) => p.id === order!.items[0].productId)!;
+    if (product.trackStock) expect(product.stockOnHand).toBe(stockBefore - 1);
+  });
+
+  it("flags a payment that does not match the order total", async () => {
+    const { order } = await createOrderInStore(orderInput("signature-mens-box"));
+    const r = await markOrderPaid(order!.id, { provider: "square", id: "p", amountCents: 1, at: new Date().toISOString() });
+    expect(r.order!.needsAttention).toBe(true);
   });
 });
